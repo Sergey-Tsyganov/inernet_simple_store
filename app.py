@@ -125,8 +125,6 @@ def shop():
                                total_sum_with_discount=total_sum_with_discount)
 
 
-if __name__ == '__main__':
-    app.run(debug=True)
 
 @app.route('/orders')
 def orders():
@@ -163,7 +161,7 @@ def orders():
     months = set()
     for o in client_orders:
         if o[0]:
-            dt = datetime.strptime(o[0], '%Y-%m-%d %H:%M:%S')
+            dt = datetime.strptime(o[0], '%d.%m.%Y %H:%M:%S')
             months.add(dt.strftime('%Y-%m'))
 
     months = sorted(list(months), reverse=True)
@@ -175,3 +173,6 @@ def orders():
                            total_sum=total_sum,
                            total_qty=total_qty,
                            months=months)
+
+if __name__ == '__main__':
+    app.run(debug=True)
