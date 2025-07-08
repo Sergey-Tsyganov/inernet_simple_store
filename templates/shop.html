@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Каталог товаров</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body { margin: 0; }
+        #clientPanel, #orderSummary {
+            background-color: #f8f9fa; /* bg-light */
+            border-bottom: 1px solid #dee2e6;
+            padding: 10px;
+        }
+        #clientPanel {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1050;
+        }
+        #orderSummary {
+            position: fixed;
+            width: 100%;
+            z-index: 1049;
+        }
+        #mainContent {
+            margin-top: 0; /* будет установлено динамически */
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ✅ БЛОК КЛИЕНТА -->
+<div id="clientPanel" class="d-flex flex-wrap gap-3">
+    <div><strong>{{ client.client_name }}</strong></div>
+    <div><strong>Адрес:</strong> {{ client.client_address }}</div>
+    <div><strong>Телефон:</strong> {{ client.client_phone }}</div>
+    <div><strong>Email:</strong> {{ client.client_email }}</div>
+    <div><strong>Комментарий:</strong> {{ client.client_comment }}</div>
+    <div><strong>Скидка:</strong> {{ discount }}%</div>
+</div>
+
+<!-- ✅ БЛОК СУММЫ ЗАКАЗА -->
+<div id="orderSummary" class="d-flex justify-content-between flex-wrap">
+    <div><strong>Сумма без скидки:</strong> <span id="sumNoDiscount">0.00</span> руб.</div>
+    <div><strong>Сумма со скидкой:</strong> <span id="sumWithDiscount">0.00</span> руб.</div>
+    <div><strong>Всего штук:</strong> <span id="totalQty">0</span></div>
+</div>
+
+<!-- ✅ ОСНОВНОЙ КОНТЕНТ -->
+<div id="mainContent" class="container">
+
+    {% if message %}
+        <div class="alert alert-info mt-2">{{ message }}</div>
+    {% endif %}
+
+    <form method="POST">
+        <table class="table table-bordered mt-2">
+            <thead class="table-light">
+                <tr>
+                    <th>Фото</th>
+                    <th>Артикул</th>
+                    <th>Название</th>
+                    <th>Цена</th>
+                    <th>Цена со скидкой</th>
+                    <th>Остаток</th>
+                    <th>Количество к заказу</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in products %}
+                <tr>
+                    <td><img src="{{ p.photo }}" width="50"></td>
+                    <td>{{ p.sku }}</td>
+                    <td>{{ p.name }}</td>
+                    <td class="price">{{ "%.2f"|format(p.price) }}</td>
+                    <td class="price_discounted">{{ "%.2f"|format(p.price_discounted) }}</td>
+                    <td>{{ p.stock }}</td>
+                    <td><input type="number" name="qty_{{ loop.index0 }}" min="0" max="{{ p.stock }}" class="form-control qty-input" value="0"></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <button type="submit" class="btn btn-primary mb-5">Разместить заказ</button>
+    </form>
+</div>
+
+<!-- ✅ СКРИПТ ПЕРЕСЧЕТА + динамическая установка отступа -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const qtyInputs = document.querySelectorAll('.qty-input');
+    const prices = document.querySelectorAll('.price');
+    const pricesDiscounted = document.querySelectorAll('.price_discounted');
+    const orderSummary = document.getElementById('orderSummary');
+    const clientPanel = document.getElementById('clientPanel');
+    const mainContent = document.getElementById('mainContent');
+
+    function recalculate() {
+        let totalQty = 0;
+        let totalNoDiscount = 0;
+        let totalWithDiscount = 0;
+
+        qtyInputs.forEach((input, i) => {
+            const qty = parseInt(input.value) || 0;
+            const price = parseFloat(prices[i].textContent) || 0;
+            const priceDiscounted = parseFloat(pricesDiscounted[i].textContent) || 0;
+
+            totalQty += qty;
+            totalNoDiscount += qty * price;
+            totalWithDiscount += qty * priceDiscounted;
+        });
+
+        document.getElementById('totalQty').textContent = totalQty;
+        document.getElementById('sumNoDiscount').textContent = totalNoDiscount.toFixed(2);
+        document.getElementById('sumWithDiscount').textContent = totalWithDiscount.toFixed(2);
+    }
+
+    qtyInputs.forEach(input => {
+        input.addEventListener('input', recalculate);
+    });
+
+    recalculate(); // initial calculation
+
+    // ✅ Установка top для блока суммы заказа и отступа для mainContent
+    function adjustLayout() {
+        const clientHeight = clientPanel.offsetHeight;
+        orderSummary.style.top = clientHeight + 'px';
+        const summaryHeight = orderSummary.offsetHeight;
+        mainContent.style.marginTop = (clientHeight + summaryHeight) + 'px';
+    }
+
+    window.addEventListener('resize', adjustLayout);
+    adjustLayout();
+});
+</script>
+
+</body>
+</html>

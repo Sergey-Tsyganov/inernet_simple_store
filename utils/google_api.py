@@ -15,3 +15,24 @@ def read_sheet(range_name):
         spreadsheetId=SPREADSHEET_ID,
         range=range_name).execute()
     return result.get('values', [])
+
+
+def write_sheet(range_name, values):
+    body = {'values': values}
+    result = sheet.values().append(
+        spreadsheetId=SPREADSHEET_ID,
+        range=range_name,
+        valueInputOption='USER_ENTERED',
+        body=body
+    ).execute()
+    return result
+
+
+def get_max_order_number():
+    result = sheet.values().get(
+        spreadsheetId=SPREADSHEET_ID,
+        range='Orders!B3:B'
+    ).execute()
+    values = result.get('values', [])
+    numbers = [int(v[0]) for v in values if v and v[0].isdigit()]
+    return max(numbers) if numbers else 0
