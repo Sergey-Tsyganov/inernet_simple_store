@@ -23,6 +23,7 @@ def write_sheet(range_name, values):
         spreadsheetId=SPREADSHEET_ID,
         range=range_name,
         valueInputOption='USER_ENTERED',
+        insertDataOption='INSERT_ROWS',
         body=body
     ).execute()
     return result
@@ -31,7 +32,7 @@ def write_sheet(range_name, values):
 def get_max_order_number():
     result = sheet.values().get(
         spreadsheetId=SPREADSHEET_ID,
-        range='Orders!B3:B'
+        range='Orders!c3:c'
     ).execute()
     values = result.get('values', [])
     numbers = [int(v[0]) for v in values if v and v[0].isdigit()]

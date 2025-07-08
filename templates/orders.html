@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Мои заказы</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body { margin-top: 160px; }
+        .fixed-top-custom { position: fixed; top: 0; width: 100%; z-index: 1050; background: #f8f9fa; padding: 10px; border-bottom: 1px solid #dee2e6; }
+        .fixed-top-custom-2 { position: fixed; top: 60px; width: 100%; z-index: 1049; background: #f8f9fa; padding: 10px; border-bottom: 1px solid #dee2e6; }
+        .refused { background-color: #f8d7da !important; }
+    </style>
+</head>
+<body>
+
+<!-- ✅ Панель клиента -->
+<div class="fixed-top-custom">
+    <div class="container d-flex flex-wrap gap-3">
+        <div><strong>{{ client.client_name }}</strong></div>
+        <div><strong>Скидка:</strong> {{ discount }}%</div>
+        <div><strong>Общая сумма заказов:</strong> {{ "%.2f"|format(total_sum) }} руб.</div>
+        <div><strong>Общее количество:</strong> {{ total_qty }}</div>
+    </div>
+</div>
+
+<!-- ✅ Панель фильтров -->
+<div class="fixed-top-custom-2">
+    <div class="container d-flex flex-wrap gap-3">
+        <div>
+            <label>Фильтр по месяцу:
+                <select class="form-select" onchange="applyFilters()" id="monthFilter">
+                    <option value="">Все</option>
+                    {% for m in months %}
+                    <option value="{{ m }}">{{ m }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+        </div>
+        <div>
+            <label>Фильтр по статусу:
+                <select class="form-select" onchange="applyFilters()" id="statusFilter">
+                    <option value="">Все</option>
+                    <option value="новый">Новый</option>
+                    <option value="отгружено">Отгружено</option>
+                    <option value="доставлен">Доставлен</option>
+                    <option value="отказано">Отказано</option>
+                </select>
+            </label>
+        </div>
+    </div>
+</div>
+
+<!-- ✅ Контент -->
+<div class="container mt-5">
+    {% for order_number, items in grouped.items() %}
+    <div class="card mb-3 order-block" data-month="{{ items[0][0][:7] }}">
+        <div class="card-header">
+            <strong>Дата:</strong> {{ items[0][0] }} | <strong>Номер заказа:</strong> {{ order_number }}
+        </div>
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>Артикул</th>
+                    <th>Наименование</th>
+                    <th>Цена за ед.</th>
+                    <th>Количество</th>
+                    <th>Стоимость</th>
+                    <th>Статус</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set order_sum = 0 %}
+                {% set order_qty = 0 %}
+                {% for o in items %}
+                {% set qty = o[5]|int %}
+                {% set price = o[6]|float %}
+                {% set line_sum = price * qty %}
+                {% if o[7].strip() == 'отказано' %}
+                <tr class="refused">
+                {% else %}
+                <tr>
+                {% set order_sum = order_sum + line_sum %}
+                {% set order_qty = order_qty + qty %}
+                {% endif %}
+                    <td>{{ o[3] }}</td>
+                    <td>{{ o[4] }}</td>
+                    <td>{{ "%.2f"|format(price) }}</td>
+                    <td>{{ qty }}</td>
+                    <td>{{ "%.2f"|format(line_sum) }}</td>
+                    <td>{{ o[7] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="card-footer">
+            <strong>Итог по заказу:</strong> {{ order_qty }} шт. на {{ "%.2f"|format(order_sum) }} руб.
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- ✅ Скрипт фильтров -->
+<script>
+function applyFilters() {
+    const month = document.getElementById('monthFilter').value;
+    const status = document.getElementById('statusFilter').value;
+    const orders = document.querySelectorAll('.order-block');
+
+    orders.forEach(order => {
+        const rows = order.querySelectorAll('tbody tr');
+        let visibleRows = 0;
+
+        rows.forEach(row => {
+            const rowStatus = row.cells[5].textContent.trim().toLowerCase();
+            const rowMonth = order.dataset.month;
+
+            const matchMonth = !month || rowMonth === month;
+            const matchStatus = !status || rowStatus === status;
+
+            if (matchMonth && matchStatus) {
+                row.style.display = '';
+                visibleRows += 1;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // скрыть заказ, если нет видимых строк
+        order.style.display = visibleRows > 0 ? '' : 'none';
+    });
+}
+</script>
+
+</body>
+</html>

@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, session, redirect, url_for
 from utils.captcha_generator import generate_captcha
-from utils.google_api import read_sheet, write_sheet
+from utils.google_api import read_sheet, write_sheet, get_max_order_number
+from collections import defaultdict
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # замени на безопасный ключ
@@ -69,30 +71,49 @@ def shop():
     total_sum_with_discount = 0
 
     if request.method == 'POST':
+        from datetime import datetime
+        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        max_order_number = get_max_order_number()
+        new_order_number = max_order_number + 1
+
         orders = []
+
         for i, p in enumerate(products):
             qty = request.form.get(f'qty_{i}')
             if qty:
                 qty = int(qty)
                 if qty > 0 and qty <= p['stock']:
-                    orders.append([session['client_name'], p['name'], qty, p['price_discounted'] * qty])
-                    total_qty += qty
-                    total_sum_no_discount += p['price'] * qty
-                    total_sum_with_discount += p['price_discounted'] * qty
+                    price_with_discount = p['price_discounted']
+
+                    orders.append([
+                        now,
+                        session['client_name'],
+                        new_order_number,
+                        p['sku'],
+                        p['name'],
+                        qty,
+                        price_with_discount,
+                        'новый'
+                    ])
+
         if orders:
             for o in orders:
-                write_sheet('Orders!A2', [o])
-            message = f'Заказ размещен. Всего {total_qty} шт. на сумму {total_sum_with_discount:.2f} руб.'
+                write_sheet('Orders!A3', [o])  # запись с 3 строки, append
+
+            message = f'Заказ № {new_order_number} размещен успешно.'
         else:
             message = 'Вы не выбрали товары.'
+
         return render_template('shop.html',
                                products=products,
                                discount=discount,
                                client=session,
-                               total_qty=total_qty,
-                               total_sum_no_discount=total_sum_no_discount,
-                               total_sum_with_discount=total_sum_with_discount,
+                               total_qty=0,
+                               total_sum_no_discount=0,
+                               total_sum_with_discount=0,
                                message=message)
+
     else:
         # При GET-запросе суммы = 0
         return render_template('shop.html',
@@ -107,3 +128,50 @@ def shop():
 if __name__ == '__main__':
     app.run(debug=True)
 
+@app.route('/orders')
+def orders():
+    username = session.get('username')
+    if not username:
+        return redirect('/')
+
+    # Чтение всех заказов
+    orders_raw = read_sheet('Orders!A3:H')
+
+    # Фильтрация по клиенту
+    client_name = session['client_name']
+    client_orders = [o for o in orders_raw if o[1] == client_name]
+
+    from collections import defaultdict
+    grouped = defaultdict(list)
+    for o in client_orders:
+        order_number = o[2]
+        grouped[order_number].append(o)
+
+    # Подготовка итогов по всем заказам
+    total_sum = 0
+    total_qty = 0
+    for group in grouped.values():
+        for o in group:
+            if len(o) >= 8 and o[7].strip() != 'отказано':
+                qty = int(o[5])
+                price = float(o[6])
+                total_sum += price * qty
+                total_qty += qty
+
+    # Получение всех месяцев для фильтра
+    from datetime import datetime
+    months = set()
+    for o in client_orders:
+        if o[0]:
+            dt = datetime.strptime(o[0], '%Y-%m-%d %H:%M:%S')
+            months.add(dt.strftime('%Y-%m'))
+
+    months = sorted(list(months), reverse=True)
+
+    return render_template('orders.html',
+                           grouped=grouped,
+                           discount=session['discount'],
+                           client=session,
+                           total_sum=total_sum,
+                           total_qty=total_qty,
+                           months=months)
