@@ -5,57 +5,58 @@
     <title>Каталог товаров</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
-        body { margin: 0; }
-        #clientPanel, #orderSummary {
-            background-color: #f8f9fa; /* bg-light */
-            border-bottom: 1px solid #dee2e6;
-            padding: 10px;
-        }
-        #clientPanel {
+        body { margin: 0; padding-top: 0; }
+        .fixed-panel-client {
             position: fixed;
             top: 0;
             width: 100%;
             z-index: 1050;
+            background: #f8f9fa;
+            padding: 10px;
+            border-bottom: none;
         }
-        #orderSummary {
+        .fixed-panel-summary {
             position: fixed;
             width: 100%;
             z-index: 1049;
-        }
-        #mainContent {
-            margin-top: 0; /* будет установлено динамически */
+            background: #f8f9fa;
             padding: 10px;
+            border-top: none;
+            border-bottom: 1px solid #dee2e6;
         }
     </style>
 </head>
 <body>
 
-<!-- ✅ БЛОК КЛИЕНТА -->
-<div id="clientPanel" class="d-flex flex-wrap gap-3">
-    <div><strong>{{ client.client_name }}</strong></div>
-    <div><strong>Адрес:</strong> {{ client.client_address }}</div>
-    <div><strong>Телефон:</strong> {{ client.client_phone }}</div>
-    <div><strong>Email:</strong> {{ client.client_email }}</div>
-    <div><strong>Комментарий:</strong> {{ client.client_comment }}</div>
-    <div><strong>Скидка:</strong> {{ discount }}%</div>
+<!-- ✅ Панель клиента -->
+<div id="clientPanel" class="fixed-panel-client">
+    <div class="container d-flex flex-wrap gap-3">
+        <div><strong>{{ client.client_name }}</strong></div>
+        <div><strong>Скидка:</strong> {{ discount }}%</div>
+    </div>
 </div>
 
-<!-- ✅ БЛОК СУММЫ ЗАКАЗА -->
-<div id="orderSummary" class="d-flex justify-content-between flex-wrap">
-    <div><strong>Сумма без скидки:</strong> <span id="sumNoDiscount">0.00</span> руб.</div>
-    <div><strong>Сумма со скидкой:</strong> <span id="sumWithDiscount">0.00</span> руб.</div>
-    <div><strong>Всего штук:</strong> <span id="totalQty">0</span></div>
+<!-- ✅ Панель итогов и кнопки -->
+<div id="orderSummary" class="fixed-panel-summary">
+    <div class="container d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+            <strong>Сумма без скидки:</strong> <span id="sumNoDiscount">0.00</span> руб.
+            <strong>Сумма со скидкой:</strong> <span id="sumWithDiscount">0.00</span> руб.
+            <strong>Всего штук:</strong> <span id="totalQty">0</span>
+        </div>
+        <button type="submit" form="orderForm" class="btn btn-primary">Разместить заказ</button>
+    </div>
 </div>
 
-<!-- ✅ ОСНОВНОЙ КОНТЕНТ -->
+<!-- ✅ Контент -->
 <div id="mainContent" class="container">
 
     {% if message %}
         <div class="alert alert-info mt-2">{{ message }}</div>
     {% endif %}
 
-    <form method="POST">
-        <table class="table table-bordered mt-2">
+    <form method="POST" id="orderForm">
+        <table class="table table-bordered mt-2" id="catalogTable">
             <thead class="table-light">
                 <tr>
                     <th>Фото</th>
@@ -75,26 +76,36 @@
                     <td>{{ p.name }}</td>
                     <td class="price">{{ "%.2f"|format(p.price) }}</td>
                     <td class="price_discounted">{{ "%.2f"|format(p.price_discounted) }}</td>
-                    <td>{{ p.stock }}</td>
-                    <td><input type="number" name="qty_{{ loop.index0 }}" min="0" max="{{ p.stock }}" class="form-control qty-input" value="0"></td>
+                    <td class="stock">{{ p.stock }}</td>
+                    <td>
+                        <input type="number" name="qty_{{ loop.index0 }}" min="0" max="{{ p.stock }}"
+                               class="form-control qty-input" value="0">
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-
-        <button type="submit" class="btn btn-primary mb-5">Разместить заказ</button>
     </form>
+
 </div>
 
-<!-- ✅ СКРИПТ ПЕРЕСЧЕТА + динамическая установка отступа -->
+<!-- ✅ Скрипт -->
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const qtyInputs = document.querySelectorAll('.qty-input');
     const prices = document.querySelectorAll('.price');
     const pricesDiscounted = document.querySelectorAll('.price_discounted');
-    const orderSummary = document.getElementById('orderSummary');
+    const catalogTable = document.getElementById('catalogTable').querySelector('tbody');
     const clientPanel = document.getElementById('clientPanel');
+    const orderSummary = document.getElementById('orderSummary');
     const mainContent = document.getElementById('mainContent');
+
+    function adjustSummaryPanel() {
+        const clientHeight = clientPanel.offsetHeight;
+        orderSummary.style.top = clientHeight + 'px';
+        const summaryHeight = orderSummary.offsetHeight;
+        mainContent.style.marginTop = (clientHeight + summaryHeight + 10) + 'px';
+    }
 
     function recalculate() {
         let totalQty = 0;
@@ -102,7 +113,14 @@ document.addEventListener('DOMContentLoaded', () => {
         let totalWithDiscount = 0;
 
         qtyInputs.forEach((input, i) => {
-            const qty = parseInt(input.value) || 0;
+            let qty = parseInt(input.value) || 0;
+            const stock = parseInt(input.closest('tr').querySelector('.stock').textContent) || 0;
+
+            if (qty > stock) {
+                qty = stock;
+                input.value = stock;
+            }
+
             const price = parseFloat(prices[i].textContent) || 0;
             const priceDiscounted = parseFloat(pricesDiscounted[i].textContent) || 0;
 
@@ -116,22 +134,27 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('sumWithDiscount').textContent = totalWithDiscount.toFixed(2);
     }
 
-    qtyInputs.forEach(input => {
-        input.addEventListener('input', recalculate);
-    });
+    function sortRowsByQuantity() {
+        const rows = Array.from(catalogTable.querySelectorAll('tr'));
 
-    recalculate(); // initial calculation
+        rows.sort((rowA, rowB) => {
+            const qtyA = parseInt(rowA.querySelector('.qty-input').value) || 0;
+            const qtyB = parseInt(rowB.querySelector('.qty-input').value) || 0;
+            return qtyB - qtyA;
+        });
 
-    // ✅ Установка top для блока суммы заказа и отступа для mainContent
-    function adjustLayout() {
-        const clientHeight = clientPanel.offsetHeight;
-        orderSummary.style.top = clientHeight + 'px';
-        const summaryHeight = orderSummary.offsetHeight;
-        mainContent.style.marginTop = (clientHeight + summaryHeight) + 'px';
+        rows.forEach(row => catalogTable.appendChild(row));
     }
 
-    window.addEventListener('resize', adjustLayout);
-    adjustLayout();
+    qtyInputs.forEach(input => {
+        input.addEventListener('input', recalculate);
+        input.addEventListener('blur', sortRowsByQuantity);
+    });
+
+    adjustSummaryPanel();
+    window.addEventListener('resize', adjustSummaryPanel);
+
+    recalculate();
 });
 </script>
 
