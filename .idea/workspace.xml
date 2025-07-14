@@ -4,12 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c780fde3-b703-49f2-a2af-cd7231537656" name="Changes" comment="рабочая версия исправленная целая">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/captcha/current_captcha.png" beforeDir="false" afterPath="$PROJECT_DIR$/static/captcha/current_captcha.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/contacts.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/contacts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/feedback.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/feedback.html" afterDir="false" />
-    </list>
+    <list default="true" id="c780fde3-b703-49f2-a2af-cd7231537656" name="Changes" comment="рабочая версия исправленная целая" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -175,7 +170,15 @@
       <option name="project" value="LOCAL" />
       <updated>1752482491200</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="рабочая версия исправленная целая">
+      <option name="closed" value="true" />
+      <created>1752497069837</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1752497069837</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
