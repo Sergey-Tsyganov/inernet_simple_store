@@ -4,11 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c780fde3-b703-49f2-a2af-cd7231537656" name="Changes" comment="рабочая версия">
+    <list default="true" id="c780fde3-b703-49f2-a2af-cd7231537656" name="Changes" comment="рабочая версия исправленная 1">
+      <change afterPath="$PROJECT_DIR$/templates/contacts.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/feedback.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/static/captcha/current_captcha.png" beforeDir="false" afterPath="$PROJECT_DIR$/static/captcha/current_captcha.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/orders.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/orders.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/shop.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/shop.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -25,6 +27,7 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RESET_MODE" value="HARD" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 3
@@ -138,7 +141,15 @@
       <option name="project" value="LOCAL" />
       <updated>1752440196660</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="рабочая версия исправленная 1">
+      <option name="closed" value="true" />
+      <created>1752443399620</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1752443399620</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -157,7 +168,8 @@
     <MESSAGE value="до размещения заказа" />
     <MESSAGE value="что то не работает" />
     <MESSAGE value="рабочая версия" />
-    <option name="LAST_COMMIT_MESSAGE" value="рабочая версия" />
+    <MESSAGE value="рабочая версия исправленная 1" />
+    <option name="LAST_COMMIT_MESSAGE" value="рабочая версия исправленная 1" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

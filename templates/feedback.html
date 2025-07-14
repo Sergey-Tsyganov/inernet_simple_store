@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Обратная связь - Мой примитивный магазин</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="/index">Мой примитивный Магазин</a>
+        <div class="collapse navbar-collapse justify-content-end">
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="/index">Главная</a></li>
+                <li class="nav-item"><a class="nav-link" href="/contacts">Контакты</a></li>
+                <li class="nav-item"><a class="nav-link active" href="/feedback">Пожаловаться</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-5" style="max-width:600px;">
+    <h2>Обратная связь</h2>
+    <form method="POST">
+        <input type="text" name="name" class="form-control mb-3" placeholder="Ваше имя, мы вас запомним..." required>
+        <input type="email" name="email" class="form-control mb-3" placeholder="Ваш Email" required>
+        <textarea name="message" class="form-control mb-3" placeholder="Какое-то сообщение и pin код от карты" rows="5" required></textarea>
+        <button type="submit" class="btn btn-primary w-100">Отправить</button>
+    </form>
+
+    {% if success %}
+        <div class="alert alert-success mt-3">Ваше сообщение куда-то отправлено!</div>
+    {% endif %}
+</div>
+
+<footer class="bg-dark text-white py-3 mt-5">
+    <div class="container text-center">
+        © {{ year }} Цыганов С.Н. | Вообще все права защищены
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

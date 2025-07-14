@@ -8,7 +8,7 @@ app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # замени на безопасный ключ
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
@@ -125,6 +125,26 @@ def shop():
                                total_sum_with_discount=total_sum_with_discount)
 
 
+@app.route('/')
+def index():
+    from datetime import datetime
+    return render_template('index.html', year=datetime.now().year)
+
+
+@app.route('/contacts')
+def contacts():
+    from datetime import datetime
+    return render_template('contacts.html', year=datetime.now().year)
+
+
+@app.route('/feedback', methods=['GET', 'POST'])
+def feedback():
+    from datetime import datetime
+    success = False
+    if request.method == 'POST':
+        # Здесь можно добавить обработку отправки сообщения
+        success = True
+    return render_template('feedback.html', year=datetime.now().year, success=success)
 
 @app.route('/orders')
 def orders():
