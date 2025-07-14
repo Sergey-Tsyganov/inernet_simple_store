@@ -4,14 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c780fde3-b703-49f2-a2af-cd7231537656" name="Changes" comment="рабочая версия исправленная 1">
-      <change afterPath="$PROJECT_DIR$/templates/contacts.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/feedback.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/captcha/current_captcha.png" beforeDir="false" afterPath="$PROJECT_DIR$/static/captcha/current_captcha.png" afterDir="false" />
-    </list>
+    <list default="true" id="c780fde3-b703-49f2-a2af-cd7231537656" name="Changes" comment="рабочая версия исправленная целая" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -149,7 +142,15 @@
       <option name="project" value="LOCAL" />
       <updated>1752443399620</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="рабочая версия исправленная целая">
+      <option name="closed" value="true" />
+      <created>1752478135358</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1752478135358</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -169,7 +170,8 @@
     <MESSAGE value="что то не работает" />
     <MESSAGE value="рабочая версия" />
     <MESSAGE value="рабочая версия исправленная 1" />
-    <option name="LAST_COMMIT_MESSAGE" value="рабочая версия исправленная 1" />
+    <MESSAGE value="рабочая версия исправленная целая" />
+    <option name="LAST_COMMIT_MESSAGE" value="рабочая версия исправленная целая" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
