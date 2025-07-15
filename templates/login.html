@@ -2,22 +2,79 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Авторизация</title>
+    <title>Вход - Мой магазин</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f5f7f9;
+        }
+        .captcha-img {
+            max-width: 100%;
+            height: 80px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        footer {
+            background-color: #343a40;
+            color: #fff;
+        }
+    </style>
 </head>
 <body>
-    <h2>Вход в интернет-магазин</h2>
-    {% if error %}
-        <p style="color:red;">{{ error }}</p>
-    {% endif %}
-    <form method="POST">
-        Логин:<br>
-        <input type="text" name="username" required><br><br>
-        Пароль:<br>
-        <input type="password" name="password" required><br><br>
-        Капча:<br>
-        <img src="{{ captcha }}" alt="Captcha"><br><br>
-        <input type="text" name="captcha" required><br><br>
-        <button type="submit">Войти</button>
-    </form>
+
+<!-- ✅ Фиксированная Навигация -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="/index">Мой Магазин</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="/index">Главная</a></li>
+                <li class="nav-item"><a class="nav-link" href="/contacts">Контакты</a></li>
+                <li class="nav-item"><a class="nav-link" href="/feedback">Обратная связь</a></li>
+                <li class="nav-item"><a class="nav-link" href="/about">О проекте</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ✅ Форма входа -->
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="bg-white p-4 rounded shadow-sm" style="width:100%; max-width:400px;">
+
+        <h4 class="text-center mb-4">Вход в интернет-магазин</h4>
+
+        {% if error %}
+            <div class="alert alert-danger text-center">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST">
+            <input type="text" name="username" class="form-control mb-3" placeholder="Логин" required>
+            <input type="password" name="password" class="form-control mb-3" placeholder="Пароль" required>
+
+            <div class="mb-3 text-center">
+                <img src="{{ captcha }}" alt="Captcha" class="captcha-img">
+            </div>
+
+            <input type="text" name="captcha" class="form-control mb-3" placeholder="Введите текст с картинки" required>
+
+            <button type="submit" class="btn btn-primary w-100">Войти</button>
+        </form>
+
+    </div>
+</div>
+
+<!-- ✅ Футер -->
+<footer class="py-3">
+    <div class="container text-center">
+        © {{ year }} Мой Магазин | Все права защищены
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
+

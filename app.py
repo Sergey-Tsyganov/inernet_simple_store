@@ -193,6 +193,11 @@ def orders():
                            total_sum=total_sum,
                            total_qty=total_qty,
                            months=months)
+# о проекте
+@app.route('/about')
+def about():
+    from datetime import datetime
+    return render_template('about.html', year=datetime.now().year)
 
 if __name__ == '__main__':
     app.run(debug=True)
