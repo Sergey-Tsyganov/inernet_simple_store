@@ -1,36 +1,51 @@
 from flask import Flask, render_template, request, session, redirect, url_for
 from utils.captcha_generator import generate_captcha
-from utils.google_api import read_sheet, write_sheet, get_max_order_number, update_sheet_range
+from utils.google_api import read_sheet, write_sheet, get_max_order_number, update_sheet_range, clear_sheet_range
 from collections import defaultdict
 from datetime import datetime
 from forms import RegistrationForm
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mail import Mail, Message
+import threading
 import requests
 
-
 app = Flask(__name__)
-# Настройки почты
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 465
-app.config['MAIL_USE_SSL'] = True
-app.config['MAIL_USERNAME'] = 'tsysn1@gmail.com'   # твой email
-app.config['MAIL_PASSWORD'] = 'wsnq oqfd rsbb fljq'           # пароль приложения
+app.secret_key = 'supersecretkey'  # замените в продакшене
 
+
+# ======== Загрузка параметров из admin листа =========
+def load_admin_settings():
+    admin_data = read_sheet('admin!A2:H2')[0]
+    return {
+        'admin_email': admin_data[0],
+        'admin_phone': admin_data[1],
+        'telegram_bot_token': admin_data[2],
+        'telegram_chat_id': admin_data[3],
+        'mail_server': admin_data[4],
+        'mail_port': int(admin_data[5]),
+        'mail_password': admin_data[6],
+        'mail_use_ssl': admin_data[7].strip().upper() == 'TRUE'
+    }
+
+
+def apply_mail_settings(config):
+    app.config['MAIL_SERVER'] = config['mail_server']
+    app.config['MAIL_PORT'] = config['mail_port']
+    app.config['MAIL_USE_SSL'] = config['mail_use_ssl']
+    app.config['MAIL_USERNAME'] = config['admin_email']
+    app.config['MAIL_PASSWORD'] = config['mail_password']
+
+
+admin_settings = load_admin_settings()
+apply_mail_settings(admin_settings)
 mail = Mail(app)
-# API TELEGA bot 7360824344:AAFBPSYExdZ4cXX95HBpJNxFnWImSO61FRA
-# Tsy_simple_bot  Tsy_simple_istore
-#chat id 384456688
 
-TELEGRAM_BOT_TOKEN = '7360824344:AAFBPSYExdZ4cXX95HBpJNxFnWImSO61FRA'
-TELEGRAM_CHAT_ID = '384456688'  # например: '-1001234567890'
 
-app.secret_key = 'supersecretkey'  # замените на безопасный ключ в продакшене
-
+# ========== Telegram ==========
 def send_telegram_message(text):
-    url = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage'
+    url = f'https://api.telegram.org/bot{admin_settings["telegram_bot_token"]}/sendMessage'
     payload = {
-        'chat_id': TELEGRAM_CHAT_ID,
+        'chat_id': admin_settings["telegram_chat_id"],
         'text': text
     }
     try:
@@ -52,6 +67,21 @@ def format_date(value):
         return ''
 
 
+# ========== Почта ==========
+def send_order_email(subject, recipients, body):
+    try:
+        msg = Message(subject=subject,
+                      sender=app.config['MAIL_USERNAME'],
+                      recipients=recipients,
+                      body=body)
+        with app.app_context():
+            mail.send(msg)
+        print("✅ Email отправлен")
+    except Exception as e:
+        print(f"❌ Ошибка при отправке email: {e}")
+
+
+# ========== Основные маршруты ==========
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -110,7 +140,6 @@ def register():
             error = 'Этот email уже зарегистрирован.'
         else:
             hashed_password = generate_password_hash(form.password.data)
-
             new_user = [
                 username,
                 hashed_password,
@@ -132,21 +161,6 @@ def logout():
     session.clear()
     return redirect('/')
 
-import threading
-from flask_mail import Message
-
-def send_order_email(subject, recipients, body):
-    """Фоновая отправка email."""
-    try:
-        msg = Message(subject=subject,
-                      sender=app.config['MAIL_USERNAME'],
-                      recipients=recipients,
-                      body=body)
-        with app.app_context():
-            mail.send(msg)
-        print("✅ Email отправлен")
-    except Exception as e:
-        print(f"❌ Ошибка при отправке email: {e}")
 
 @app.route('/shop', methods=['GET', 'POST'])
 def shop():
@@ -198,10 +212,7 @@ def shop():
             write_sheet('Orders!A3', orders)
 
             total_sum = 0
-            email_body = f'Здравствуйте, {session["client_name"]}!\n\n'
-            email_body += f'Ваш заказ № {new_order_number} оформлен {now}.\n\n'
-            email_body += 'Состав заказа:\n'
-
+            email_body = f'Здравствуйте, {session["client_name"]}!\n\nВаш заказ № {new_order_number} оформлен {now}.\n\nСостав заказа:\n'
             telegram_message = f'📦 Новый заказ № {new_order_number} от {session["client_name"]} ({now})\n\n'
 
             for o in orders:
@@ -213,18 +224,10 @@ def shop():
             email_body += f'\nИтоговая сумма: {total_sum:.2f} руб.\n\nСпасибо за ваш заказ!'
             telegram_message += f'\n💰 Итог: {total_sum:.2f} руб.'
 
-            admin_email = read_sheet('admin!A2:B2')[0][0]
-            recipients = [session['client_email'], admin_email]
+            recipients = [session['client_email'], admin_settings['admin_email']]
 
-            threading.Thread(
-                target=send_order_email,
-                args=(f'Заказ № {new_order_number}', recipients, email_body)
-            ).start()
-
-            threading.Thread(
-                target=send_telegram_message,
-                args=(telegram_message,)
-            ).start()
+            threading.Thread(target=send_order_email, args=(f'Заказ № {new_order_number}', recipients, email_body)).start()
+            threading.Thread(target=send_telegram_message, args=(telegram_message,)).start()
 
             session['shop_message'] = f'Заказ № {new_order_number} размещен успешно. Уведомление отправлено.'
         else:
@@ -232,11 +235,7 @@ def shop():
 
         return redirect('/shop')
 
-    return render_template('shop.html',
-                           products=products,
-                           discount=discount,
-                           client=session,
-                           message=message)
+    return render_template('shop.html', products=products, discount=discount, client=session, message=message)
 
 
 @app.route('/admin', methods=['GET', 'POST'])
@@ -244,25 +243,68 @@ def admin_panel():
     if session.get('username') != 'admin':
         return redirect('/login')
 
-    admin_data = read_sheet('admin!A2:B2')
-    admin_email = admin_data[0][0] if admin_data and len(admin_data[0]) >= 1 else ''
-    admin_phone = admin_data[0][1] if admin_data and len(admin_data[0]) >= 2 else ''
+    # Чтение настроек из admin!A2:H2
+    admin_data = read_sheet('admin!A2:H2')[0]
+    admin_email = admin_data[0]
+    admin_phone = admin_data[1]
+    telegram_token = admin_data[2]
+    telegram_chat_id = admin_data[3]
+    mail_server = admin_data[4]
+    mail_port = admin_data[5]
+    mail_password = admin_data[6]
+    mail_use_ssl = admin_data[7]
 
     success = False
+    message = None
 
-    if request.method == 'POST' and request.form.get('action') == 'update_admin':
-        admin_email = request.form['admin_email'].strip()
-        admin_phone = request.form['admin_phone'].strip()
-        update_sheet_range('admin!A2', [[admin_email, admin_phone]])
-        success = True
+    if request.method == 'POST':
+        action = request.form.get('action')
+
+        if action == 'update_admin':
+            admin_email = request.form['admin_email'].strip()
+            admin_phone = request.form['admin_phone'].strip()
+            telegram_token = request.form['telegram_token'].strip()
+            telegram_chat_id = request.form['telegram_chat_id'].strip()
+            mail_server = request.form['mail_server'].strip()
+            mail_port = request.form['mail_port'].strip()
+            mail_password = request.form['mail_password'].strip()
+            mail_use_ssl = request.form['mail_use_ssl'].strip().upper()
+
+            admin_data = [
+                admin_email,
+                admin_phone,
+                telegram_token,
+                telegram_chat_id,
+                mail_server,
+                mail_port,
+                mail_password,
+                mail_use_ssl
+            ]
+            print(admin_data)
+            update_sheet_range('admin!A2:H2', [admin_data])
+            success = True
+            message = "Настройки успешно обновлены."
+
+        elif action == 'reload_settings':
+            global admin_settings
+            admin_settings = load_admin_settings()
+            apply_mail_settings(admin_settings)
+            message = "Параметры успешно перезагружены из Google Sheets."
 
     users = read_sheet('Users!A2:H')
 
     return render_template('admin.html',
                            admin_email=admin_email,
                            admin_phone=admin_phone,
+                           telegram_token=telegram_token,
+                           telegram_chat_id=telegram_chat_id,
+                           mail_server=mail_server,
+                           mail_port=mail_port,
+                           mail_password=mail_password,
+                           mail_use_ssl=mail_use_ssl,
                            users=users,
-                           success=success)
+                           success=success,
+                           message=message)
 
 
 @app.route('/admin/delete/<username>')
@@ -272,25 +314,17 @@ def admin_delete_user(username):
 
     users = read_sheet('Users!A2:H')
     users = [u for u in users if u[0] != username]
-
-    from utils.google_api import clear_sheet_range, write_sheet
-
-    clear_sheet_range('Users!A2:H')  # 1️⃣ Очищаем старый диапазон
-
+    clear_sheet_range('Users!A2:H')
     if users:
-        write_sheet('Users!A2', users)  # 2️⃣ Записываем оставшиеся строки
-
+        write_sheet('Users!A2', users)
     return redirect('/admin')
-
 
 
 @app.route('/admin/edit/<username>', methods=['GET', 'POST'])
 def admin_edit_user(username):
-    # ✅ Ограничение доступа: только для администратора
     if session.get('username') != 'admin':
         return redirect('/login')
 
-    # ✅ Чтение всех пользователей
     users = read_sheet('Users!A2:H')
     user_data = next((u for u in users if u[0] == username), None)
 
@@ -298,33 +332,20 @@ def admin_edit_user(username):
         return "Пользователь не найден", 404
 
     if request.method == 'POST':
-        # ✅ Получаем изменённые данные из формы
-        discount = request.form['discount']
-        company = request.form['company']
-        address = request.form['address']
-        phone = request.form['phone']
-        email = request.form['email']
-        comment = request.form['comment']
-
-        # ✅ Формируем обновлённую строку
         updated_row = [
-            user_data[0],     # Логин (не меняется)
-            user_data[1],     # Пароль (хеш, не меняется)
-            discount,
-            company,
-            address,
-            phone,
-            email,
-            comment
+            user_data[0],
+            user_data[1],
+            request.form['discount'],
+            request.form['company'],
+            request.form['address'],
+            request.form['phone'],
+            request.form['email'],
+            request.form['comment']
         ]
-
-        # ✅ Обновляем конкретную строку в Google Sheets
-        row_number = users.index(user_data) + 2  # строка A2 = 2
-        #write_sheet(f'Users!A{row_number}:H{row_number}', [updated_row])
+        row_number = users.index(user_data) + 2
         update_sheet_range(f'Users!A{row_number}:H{row_number}', [updated_row])
         return redirect('/admin')
 
-    # ✅ Отображаем форму редактирования
     return render_template('admin_edit.html', user=user_data)
 
 
@@ -337,6 +358,7 @@ def index():
 @app.route('/contacts')
 def contacts():
     return render_template('contacts.html', year=datetime.now().year)
+
 
 @app.route('/feedback', methods=['GET', 'POST'])
 def feedback():
@@ -355,26 +377,11 @@ def feedback():
         order_number = request.form.get('order_number', '').strip()
         message_text = request.form.get('message', '').strip()
 
-        record = [
-            now,
-            client_name,
-            name,
-            email,
-            phone,
-            message_type,
-            order_number,
-            message_text
-        ]
-
-        write_sheet('Feedback!A2', [record])  # добавляем строку в таблицу
-
+        record = [now, client_name, name, email, phone, message_type, order_number, message_text]
+        write_sheet('Feedback!A2', [record])
         success = True
 
-    return render_template('feedback.html',
-                           year=datetime.now().year,
-                           success=success,
-                           client_authenticated=client_authenticated)
-
+    return render_template('feedback.html', year=datetime.now().year, success=success, client_authenticated=client_authenticated)
 
 
 @app.route('/orders')
@@ -391,31 +398,12 @@ def orders():
         order_number = o[2]
         grouped[order_number].append(o)
 
-    total_sum = 0
-    total_qty = 0
-    for group in grouped.values():
-        for o in group:
-            if len(o) >= 8 and o[7].strip() != 'отказано':
-                qty = int(o[5])
-                price = float(o[6])
-                total_sum += price * qty
-                total_qty += qty
+    total_sum = sum(int(o[5]) * float(o[6]) for group in grouped.values() for o in group if len(o) >= 8 and o[7].strip() != 'отказано')
+    total_qty = sum(int(o[5]) for group in grouped.values() for o in group if len(o) >= 8 and o[7].strip() != 'отказано')
 
-    months = set()
-    for o in client_orders:
-        if o[0]:
-            dt = datetime.strptime(o[0], '%d.%m.%Y %H:%M:%S')
-            months.add(dt.strftime('%Y-%m'))
+    months = sorted({datetime.strptime(o[0], '%d.%m.%Y %H:%M:%S').strftime('%Y-%m') for o in client_orders if o[0]}, reverse=True)
 
-    months = sorted(months, reverse=True)
-
-    return render_template('orders.html',
-                           grouped=grouped,
-                           discount=session['discount'],
-                           client=session,
-                           total_sum=total_sum,
-                           total_qty=total_qty,
-                           months=months)
+    return render_template('orders.html', grouped=grouped, discount=session['discount'], client=session, total_sum=total_sum, total_qty=total_qty, months=months)
 
 
 @app.route('/about')

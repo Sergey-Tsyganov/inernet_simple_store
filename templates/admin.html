@@ -2,15 +2,17 @@
 {% block title %}Администрирование{% endblock %}
 
 {% block content %}
-
 <div class="container my-5">
     <h2 class="mb-4">Панель администратора</h2>
 
+    {% if message %}
+        <div class="alert alert-info">{{ message }}</div>
+    {% endif %}
     {% if success %}
-        <div class="alert alert-success">Данные администратора успешно обновлены.</div>
+        <div class="alert alert-success">Настройки успешно обновлены.</div>
     {% endif %}
 
-    <!-- Форма для изменения email и телефона администратора -->
+    <!-- Форма редактирования настроек -->
     <form method="POST" class="mb-5">
         <div class="mb-3">
             <label class="form-label">Email администратора</label>
@@ -20,13 +22,38 @@
             <label class="form-label">Телефон администратора</label>
             <input type="text" name="admin_phone" class="form-control" value="{{ admin_phone }}" required>
         </div>
-        <button type="submit" name="action" value="update_admin" class="btn btn-primary">Сохранить</button>
+        <div class="mb-3">
+            <label class="form-label">Telegram Bot Token</label>
+            <input type="text" name="telegram_token" class="form-control" value="{{ telegram_token }}" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Telegram Chat ID</label>
+            <input type="text" name="telegram_chat_id" class="form-control" value="{{ telegram_chat_id }}" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">SMTP сервер</label>
+            <input type="text" name="mail_server" class="form-control" value="{{ mail_server }}" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">SMTP порт</label>
+            <input type="text" name="mail_port" class="form-control" value="{{ mail_port }}" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Пароль приложения (почта)</label>
+            <input type="text" name="mail_password" class="form-control" value="{{ mail_password }}" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Использовать SSL (TRUE/FALSE)</label>
+            <input type="text" name="mail_use_ssl" class="form-control" value="{{ mail_use_ssl }}" required>
+        </div>
+
+        <button type="submit" name="action" value="update_admin" class="btn btn-primary">Сохранить настройки</button>
+        <button type="submit" name="action" value="reload_settings" class="btn btn-outline-secondary ms-2">Перезагрузить параметры</button>
     </form>
 
     <hr class="my-5">
 
     <h3 class="mb-3">Зарегистрированные пользователи</h3>
-
     <div class="table-responsive">
         <table class="table table-bordered align-middle">
             <thead class="table-light">
@@ -60,5 +87,4 @@
         </table>
     </div>
 </div>
-
 {% endblock %}
