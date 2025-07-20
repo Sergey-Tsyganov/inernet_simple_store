@@ -5,7 +5,7 @@ from collections import defaultdict
 from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key = 'supersecretkey'  # замени на безопасный ключ
+app.secret_key = 'supersecretkey'  # Заменить на безопасный ключ в продакшене
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -15,14 +15,12 @@ def login():
         password = request.form['password']
         captcha_input = request.form['captcha']
 
-        # проверка капчи
-        if captcha_input != session['captcha_text']:
+        if captcha_input != session.get('captcha_text'):
             captcha_text, captcha_path = generate_captcha()
             session['captcha_text'] = captcha_text
             return render_template('login.html', captcha=captcha_path, error='Неверная капча')
 
-        # проверка логина/пароля
-        users = read_sheet('Users!A2:H')  # читаем всех пользователей
+        users = read_sheet('Users!A2:H')
         user_dict = {u[0]: u for u in users}
 
         if username in user_dict and user_dict[username][1] == password:
@@ -45,12 +43,18 @@ def login():
     return render_template('login.html', captcha=captcha_path)
 
 
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/')
+
+
 @app.route('/shop', methods=['GET', 'POST'])
 def shop():
     if 'username' not in session:
-        return redirect('/')
+        return redirect('/login')
 
-    discount = session['discount']
+    discount = session.get('discount', 0)
     products_raw = read_sheet('Products!A2:F')
     products = []
     for p in products_raw:
@@ -66,14 +70,10 @@ def shop():
             'description': p[5]
         })
 
-    total_qty = 0
-    total_sum_no_discount = 0
-    total_sum_with_discount = 0
+    message = None
 
     if request.method == 'POST':
-        from datetime import datetime
         now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
         max_order_number = get_max_order_number()
         new_order_number = max_order_number + 1
 
@@ -83,9 +83,7 @@ def shop():
             qty = request.form.get(f'qty_{i}')
             if qty:
                 qty = int(qty)
-                if qty > 0 and qty <= p['stock']:
-                    price_with_discount = p['price_discounted']
-
+                if 0 < qty <= p['stock']:
                     orders.append([
                         now,
                         session['client_name'],
@@ -93,79 +91,57 @@ def shop():
                         p['sku'],
                         p['name'],
                         qty,
-                        price_with_discount,
+                        p['price_discounted'],
                         'новый'
                     ])
 
         if orders:
             for o in orders:
-                write_sheet('Orders!A3', [o])  # запись с 3 строки, append
-
+                write_sheet('Orders!A3', [o])
             message = f'Заказ № {new_order_number} размещен успешно.'
         else:
             message = 'Вы не выбрали товары.'
 
-        return render_template('shop.html',
-                               products=products,
-                               discount=discount,
-                               client=session,
-                               total_qty=0,
-                               total_sum_no_discount=0,
-                               total_sum_with_discount=0,
-                               message=message)
-
-    else:
-        # При GET-запросе суммы = 0
-        return render_template('shop.html',
-                               products=products,
-                               discount=discount,
-                               client=session,
-                               total_qty=total_qty,
-                               total_sum_no_discount=total_sum_no_discount,
-                               total_sum_with_discount=total_sum_with_discount)
+    return render_template('shop.html',
+                           products=products,
+                           discount=discount,
+                           client=session,
+                           message=message)
 
 
 @app.route('/')
+@app.route('/index')
 def index():
-    from datetime import datetime
     return render_template('index.html', year=datetime.now().year)
 
 
 @app.route('/contacts')
 def contacts():
-    from datetime import datetime
     return render_template('contacts.html', year=datetime.now().year)
 
 
 @app.route('/feedback', methods=['GET', 'POST'])
 def feedback():
-    from datetime import datetime
     success = False
     if request.method == 'POST':
-        # Здесь можно добавить обработку отправки сообщения
-        success = True
+        success = True  # позже можно добавить отправку на почту или запись в таблицу
     return render_template('feedback.html', year=datetime.now().year, success=success)
+
 
 @app.route('/orders')
 def orders():
-    username = session.get('username')
-    if not username:
-        return redirect('/')
+    if 'username' not in session:
+        return redirect('/login')
 
-    # Чтение всех заказов
     orders_raw = read_sheet('Orders!A3:H')
-
-    # Фильтрация по клиенту
     client_name = session['client_name']
     client_orders = [o for o in orders_raw if o[1] == client_name]
 
-    from collections import defaultdict
     grouped = defaultdict(list)
     for o in client_orders:
         order_number = o[2]
         grouped[order_number].append(o)
 
-    # Подготовка итогов по всем заказам
     total_sum = 0
     total_qty = 0
     for group in grouped.values():
@@ -176,15 +152,13 @@ def orders():
                 total_sum += price * qty
                 total_qty += qty
 
-    # Получение всех месяцев для фильтра
-    from datetime import datetime
     months = set()
     for o in client_orders:
         if o[0]:
             dt = datetime.strptime(o[0], '%d.%m.%Y %H:%M:%S')
             months.add(dt.strftime('%Y-%m'))
 
-    months = sorted(list(months), reverse=True)
+    months = sorted(months, reverse=True)
 
     return render_template('orders.html',
                            grouped=grouped,
@@ -193,11 +167,12 @@ def orders():
                            total_sum=total_sum,
                            total_qty=total_qty,
                            months=months)
-# о проекте
+
+
 @app.route('/about')
 def about():
-    from datetime import datetime
     return render_template('about.html', year=datetime.now().year)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

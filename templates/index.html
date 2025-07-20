@@ -1,139 +1,58 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Главная - Мой магазин</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f5f7f9;
-        }
-        .hero {
-            background-color: #e9ecef;
-            padding: 60px 20px;
-            text-align: center;
-        }
-        .features i {
-            font-size: 2rem;
-            color: #0d6efd;
-        }
-        footer {
-            background-color: #343a40;
-            color: #fff;
-        }
-        .scroll-to-top {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            display: none;
-            z-index: 999;
-        }
-    </style>
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}Главная - Мой Магазин{% endblock %}
 
-<!-- ✅ Фиксированная Навигация -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm sticky-top">
-    <div class="container">
-        <a class="navbar-brand" href="#">Мой Магазин</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link active" href="#">Главная</a></li>
-                <li class="nav-item"><a class="nav-link" href="/contacts">Контакты</a></li>
-                <li class="nav-item"><a class="nav-link" href="/feedback">Обратная связь</a></li>
-                <li class="nav-item"><a class="nav-link" href="/about">О проекте</a></li>
-                <li class="nav-item"><a class="btn btn-outline-light ms-3" href="/login">Войти</a></li>
-            </ul>
-        </div>
-    </div>
-</nav>
+{% block content %}
 
-<!-- ✅ Основной контент + правая колонка -->
-<div class="container my-5">
-    <div class="row">
-        <!-- Контент -->
-        <div class="col-lg-9">
-            <!-- Блок баннера -->
-            <section class="hero rounded mb-4 shadow-sm">
-                <h1 class="display-5 fw-bold">Добро пожаловать в наш магазин!</h1>
-                <p class="lead mb-4">Качественные товары. Удобная доставка. Работаем для вас.</p>
-                <a href="/login" class="btn btn-primary btn-lg">Войти в каталог</a>
-            </section>
+<div class="row">
+    <div class="col-lg-9">
 
-            <!-- Блок преимуществ -->
-            <section class="py-4 bg-white rounded shadow-sm">
-                <div class="container">
-                    <div class="row text-center features">
-                        <div class="col-md-4 mb-4">
-                            <i class="bi bi-truck"></i>
-                            <h5 class="mt-3">Доставка</h5>
-                            <p>Отправляем заказы по всей стране.</p>
-                        </div>
-                        <div class="col-md-4 mb-4">
-                            <i class="bi bi-percent"></i>
-                            <h5 class="mt-3">Скидки</h5>
-                            <p>Индивидуальные предложения для клиентов.</p>
-                        </div>
-                        <div class="col-md-4 mb-4">
-                            <i class="bi bi-shield-check"></i>
-                            <h5 class="mt-3">Гарантия качества</h5>
-                            <p>Проверенные поставщики и продукция.</p>
-                        </div>
+        <section class="hero rounded mb-4 shadow-sm">
+            <h1 class="display-5 fw-bold">Добро пожаловать в наш магазин!</h1>
+            <p class="lead mb-4">Качественные товары. Удобная доставка. Работаем для вас.</p>
+            <a href="/login" class="btn btn-primary btn-lg">Войти в каталог</a>
+        </section>
+
+        <section class="py-4 bg-white rounded shadow-sm">
+            <div class="container">
+                <div class="row text-center features">
+                    <div class="col-md-4 mb-4">
+                        <i class="bi bi-truck"></i>
+                        <h5 class="mt-3">Доставка</h5>
+                        <p>Отправляем заказы по всей стране.</p>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <i class="bi bi-percent"></i>
+                        <h5 class="mt-3">Скидки</h5>
+                        <p>Индивидуальные предложения для клиентов.</p>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <i class="bi bi-shield-check"></i>
+                        <h5 class="mt-3">Гарантия качества</h5>
+                        <p>Проверенные поставщики и продукция.</p>
                     </div>
                 </div>
-            </section>
+            </div>
+        </section>
 
-            <!-- О компании -->
-            <section class="py-4 bg-light rounded mt-4 shadow-sm">
-                <div class="container text-center">
-                    <h2>О нас</h2>
-                    <p class="lead">Мы работаем для вас, предоставляя качественный товар и профессиональный сервис. Доверие клиентов — наша главная ценность.</p>
-                </div>
-            </section>
-        </div>
+        <section class="py-4 bg-light rounded mt-4 shadow-sm">
+            <div class="container text-center">
+                <h2>О нас</h2>
+                <p class="lead">Мы работаем для вас, предоставляя качественный товар и профессиональный сервис. Доверие клиентов — наша главная ценность.</p>
+            </div>
+        </section>
 
-        <!-- Правая колонка: ссылки -->
-        <div class="col-lg-3">
-            <div class="card sticky-top shadow-sm">
-                <div class="card-header bg-primary text-white">Полезные ссылки</div>
-                <div class="list-group list-group-flush">
-                    <a href="https://yandex.ru" target="_blank" class="list-group-item list-group-item-action">Яндекс</a>
-                    <a href="https://google.com" target="_blank" class="list-group-item list-group-item-action">Google</a>
-                    <a href="https://mail.ru" target="_blank" class="list-group-item list-group-item-action">Mail.ru</a>
-                </div>
+    </div>
+
+    <div class="col-lg-3">
+        <div class="card sticky-top shadow-sm">
+            <div class="card-header bg-primary text-white">Полезные ссылки</div>
+            <div class="list-group list-group-flush">
+                <a href="https://yandex.ru" target="_blank" class="list-group-item list-group-item-action">Яндекс</a>
+                <a href="https://google.com" target="_blank" class="list-group-item list-group-item-action">Google</a>
+                <a href="https://mail.ru" target="_blank" class="list-group-item list-group-item-action">Mail.ru</a>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Кнопка наверх -->
-<button type="button" class="btn btn-primary rounded-circle scroll-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
-    <i class="bi bi-arrow-up"></i>
-</button>
-
-<!-- Футер -->
-<footer class="py-3 mt-5">
-    <div class="container text-center">
-        © {{ year }} Мой Магазин | Все права защищены
-    </div>
-</footer>
-
-<!-- Скрипты -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    const scrollButton = document.querySelector('.scroll-to-top');
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 200) {
-            scrollButton.style.display = 'block';
-        } else {
-            scrollButton.style.display = 'none';
-        }
-    });
-</script>
-
-</body>
-</html>
+{% endblock %}
