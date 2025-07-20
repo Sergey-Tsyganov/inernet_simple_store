@@ -5,7 +5,17 @@ from collections import defaultdict
 from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key = 'supersecretkey'  # Заменить на безопасный ключ в продакшене
+app.secret_key = 'supersecretkey'  # Замени на безопасный ключ в продакшене
+
+
+# Фильтр Jinja2 для форматирования даты
+@app.template_filter('format_date')
+def format_date(value):
+    try:
+        dt = datetime.strptime(value, '%d.%m.%Y %H:%M:%S')
+        return dt.strftime('%Y-%m')
+    except:
+        return ''
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -124,7 +134,7 @@ def contacts():
 def feedback():
     success = False
     if request.method == 'POST':
-        success = True  # позже можно добавить отправку на почту или запись в таблицу
+        success = True  # В дальнейшем: отправка email или запись в таблицу
     return render_template('feedback.html', year=datetime.now().year, success=success)
 
 
