@@ -22,10 +22,25 @@ mail = Mail(app)
 # Tsy_simple_bot  Tsy_simple_istore
 #chat id 384456688
 
-TELEGRAM_BOT_TOKEN = 'AAFBPSYExdZ4cXX95HBpJNxFnWImSO61FRA'
+TELEGRAM_BOT_TOKEN = '7360824344:AAFBPSYExdZ4cXX95HBpJNxFnWImSO61FRA'
 TELEGRAM_CHAT_ID = '384456688'  # например: '-1001234567890'
 
 app.secret_key = 'supersecretkey'  # замените на безопасный ключ в продакшене
+
+def send_telegram_message(text):
+    url = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage'
+    payload = {
+        'chat_id': TELEGRAM_CHAT_ID,
+        'text': text
+    }
+    try:
+        response = requests.post(url, data=payload)
+        if response.status_code != 200:
+            print(f'❌ Ошибка Telegram: {response.text}')
+        else:
+            print('✅ Сообщение отправлено в Telegram')
+    except Exception as e:
+        print(f'❌ Ошибка при отправке в Telegram: {e}')
 
 
 @app.template_filter('format_date')
@@ -154,7 +169,6 @@ def shop():
             'description': p[5]
         })
 
-    # Получаем сообщение после редиректа (если есть)
     message = session.pop('shop_message', None)
 
     if request.method == 'POST':
@@ -181,21 +195,23 @@ def shop():
                     ])
 
         if orders:
-            write_sheet('Orders!A3', orders)  # 📌 одним вызовом, а не в цикле
+            write_sheet('Orders!A3', orders)
 
-            # 📧 Формируем текст письма
+            total_sum = 0
             email_body = f'Здравствуйте, {session["client_name"]}!\n\n'
             email_body += f'Ваш заказ № {new_order_number} оформлен {now}.\n\n'
             email_body += 'Состав заказа:\n'
-            total_sum = 0
+
+            telegram_message = f'📦 Новый заказ № {new_order_number} от {session["client_name"]} ({now})\n\n'
 
             for o in orders:
                 line = f"{o[4]} (Артикул: {o[3]}) — {o[5]} шт. по {float(o[6]):.2f} руб.\n"
                 email_body += line
+                telegram_message += line
                 total_sum += int(o[5]) * float(o[6])
 
-            email_body += f'\nИтоговая сумма: {total_sum:.2f} руб.\n\n'
-            email_body += 'Спасибо за ваш заказ!'
+            email_body += f'\nИтоговая сумма: {total_sum:.2f} руб.\n\nСпасибо за ваш заказ!'
+            telegram_message += f'\n💰 Итог: {total_sum:.2f} руб.'
 
             admin_email = read_sheet('admin!A2:B2')[0][0]
             recipients = [session['client_email'], admin_email]
@@ -205,12 +221,16 @@ def shop():
                 args=(f'Заказ № {new_order_number}', recipients, email_body)
             ).start()
 
-            # ✅ Сохраняем сообщение для показа после редиректа
-            session['shop_message'] = f'Заказ № {new_order_number} размещен успешно. Уведомление отправлено на почту.'
+            threading.Thread(
+                target=send_telegram_message,
+                args=(telegram_message,)
+            ).start()
+
+            session['shop_message'] = f'Заказ № {new_order_number} размещен успешно. Уведомление отправлено.'
         else:
             session['shop_message'] = 'Вы не выбрали товары.'
 
-        return redirect('/shop')  # POST-Redirect-GET
+        return redirect('/shop')
 
     return render_template('shop.html',
                            products=products,
