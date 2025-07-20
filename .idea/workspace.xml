@@ -4,9 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c780fde3-b703-49f2-a2af-cd7231537656" name="Changes" comment="рабоатет все кандилат1">
+    <list default="true" id="c780fde3-b703-49f2-a2af-cd7231537656" name="Changes" comment="рабоатет все 2">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/shop.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/shop.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/index.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -57,6 +57,11 @@
     &quot;git-widget-placeholder&quot;: &quot;master&quot;
   }
 }</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\PycharmProjects\PythonProject\Internet_store\static\icons" />
+    </key>
+  </component>
   <component name="RunManager">
     <configuration name="app" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Internet_store" />
@@ -277,7 +282,15 @@
       <option name="project" value="LOCAL" />
       <updated>1753028510393</updated>
     </task>
-    <option name="localTasksCounter" value="23" />
+    <task id="LOCAL-00023" summary="рабоатет все 2">
+      <option name="closed" value="true" />
+      <created>1753029216704</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1753029216704</updated>
+    </task>
+    <option name="localTasksCounter" value="24" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -307,7 +320,8 @@
     <MESSAGE value="почти все без почты и телеграмма" />
     <MESSAGE value="рабоатет все и почта подвисает шоп" />
     <MESSAGE value="рабоатет все кандилат1" />
-    <option name="LAST_COMMIT_MESSAGE" value="рабоатет все кандилат1" />
+    <MESSAGE value="рабоатет все 2" />
+    <option name="LAST_COMMIT_MESSAGE" value="рабоатет все 2" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
