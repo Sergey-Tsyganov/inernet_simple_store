@@ -1,26 +1,32 @@
+import os
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
+# Скоупы
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-SPREADSHEET_ID = '1GgDUd9YdVdmXGOzrhu6eYrFVeQhk7fG13ZhB3T9rc3E'
 
-creds = service_account.Credentials.from_service_account_file(
-    'utils/credentials.json', scopes=SCOPES)
+# Переменные окружения
+credentials_path = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
+spreadsheet_id = os.environ.get('GOOGLE_SPREADSHEET_ID')
 
+if not credentials_path or not spreadsheet_id:
+    raise Exception("❌ Не найдены переменные окружения GOOGLE_APPLICATION_CREDENTIALS или GOOGLE_SPREADSHEET_ID.")
+
+# Подключение к API
+creds = service_account.Credentials.from_service_account_file(credentials_path, scopes=SCOPES)
 service = build('sheets', 'v4', credentials=creds)
 sheet = service.spreadsheets()
 
+# Чтение таблицы
 def read_sheet(range_name):
-    result = sheet.values().get(
-        spreadsheetId=SPREADSHEET_ID,
-        range=range_name).execute()
+    result = sheet.values().get(spreadsheetId=spreadsheet_id, range=range_name).execute()
     return result.get('values', [])
 
-
+# Добавление строк
 def write_sheet(range_name, values):
     body = {'values': values}
     result = sheet.values().append(
-        spreadsheetId=SPREADSHEET_ID,
+        spreadsheetId=spreadsheet_id,
         range=range_name,
         valueInputOption='USER_ENTERED',
         insertDataOption='INSERT_ROWS',
@@ -28,37 +34,32 @@ def write_sheet(range_name, values):
     ).execute()
     return result
 
+# Перезапись диапазона
 def update_sheet_range(range_name, values):
-    """
-    Перезаписывает указанный диапазон в Google Sheets.
-    :param range_name: Например, 'Users!A5:H5'
-    :param values: Список списков с данными для записи
-    """
-    sheet = service.spreadsheets()
-    body = {
-        'values': values
-    }
+    body = {'values': values}
     sheet.values().update(
-        spreadsheetId=SPREADSHEET_ID,
+        spreadsheetId=spreadsheet_id,
         range=range_name,
         valueInputOption='RAW',
         body=body
     ).execute()
 
+# Очистка диапазона
 def clear_sheet_range(range_name):
-    sheet = service.spreadsheets()
     sheet.values().clear(
-        spreadsheetId=SPREADSHEET_ID,
+        spreadsheetId=spreadsheet_id,
         range=range_name,
         body={}
     ).execute()
 
+# Получение последнего номера заказа
 def get_max_order_number():
     result = sheet.values().get(
-        spreadsheetId=SPREADSHEET_ID,
-        range='Orders!c3:c'
+        spreadsheetId=spreadsheet_id,
+        range='Orders!C3:C'
     ).execute()
     values = result.get('values', [])
     numbers = [int(v[0]) for v in values if v and v[0].isdigit()]
     return max(numbers) if numbers else 0
+
 
