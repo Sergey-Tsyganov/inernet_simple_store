@@ -3,12 +3,14 @@ from utils.captcha_generator import generate_captcha
 from utils.google_api import read_sheet, write_sheet, get_max_order_number
 from collections import defaultdict
 from datetime import datetime
+from forms import RegistrationForm
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = 'supersecretkey'  # Замени на безопасный ключ в продакшене
+app.secret_key = 'supersecretkey'  # В продакшене замените на безопасный ключ
 
 
-# Фильтр Jinja2 для форматирования даты
+# Фильтр для Jinja2 (форматирование дат)
 @app.template_filter('format_date')
 def format_date(value):
     try:
@@ -18,6 +20,7 @@ def format_date(value):
         return ''
 
 
+# Авторизация
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -33,32 +36,72 @@ def login():
         users = read_sheet('Users!A2:H')
         user_dict = {u[0]: u for u in users}
 
-        if username in user_dict and user_dict[username][1] == password:
+        if username in user_dict and check_password_hash(user_dict[username][1], password):
             user_data = user_dict[username]
             session['username'] = username
-            session['discount'] = float(user_data[2])
-            session['client_name'] = user_data[3]
-            session['client_address'] = user_data[4]
-            session['client_phone'] = user_data[5]
-            session['client_email'] = user_data[6]
-            session['client_comment'] = user_data[7]
+            session['discount'] = float(user_data[2]) if len(user_data) > 2 else 0
+            session['client_name'] = user_data[3] if len(user_data) > 3 else ''
+            session['client_address'] = user_data[4] if len(user_data) > 4 else ''
+            session['client_phone'] = user_data[5] if len(user_data) > 5 else ''
+            session['client_email'] = user_data[6] if len(user_data) > 6 else ''
+            session['client_comment'] = user_data[7] if len(user_data) > 7 else ''
             return redirect(url_for('shop'))
-        else:
-            captcha_text, captcha_path = generate_captcha()
-            session['captcha_text'] = captcha_text
-            return render_template('login.html', captcha=captcha_path, error='Неверный логин или пароль')
+
+        captcha_text, captcha_path = generate_captcha()
+        session['captcha_text'] = captcha_text
+        return render_template('login.html', captcha=captcha_path, error='Неверный логин или пароль')
 
     captcha_text, captcha_path = generate_captcha()
     session['captcha_text'] = captcha_text
     return render_template('login.html', captcha=captcha_path)
 
 
+# Регистрация
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    form = RegistrationForm()
+    error = None
+    success = False
+
+    if form.validate_on_submit():
+        username = form.username.data.strip()
+        email = form.email.data.strip().lower()
+
+        users = read_sheet('Users!A2:H')
+        existing_usernames = [u[0] for u in users]
+        existing_emails = [u[6].strip().lower() for u in users if len(u) >= 7]
+
+        if username in existing_usernames:
+            error = 'Этот логин уже используется.'
+        elif email in existing_emails:
+            error = 'Этот email уже зарегистрирован.'
+        else:
+            hashed_password = generate_password_hash(form.password.data)
+
+            new_user = [
+                username,
+                hashed_password,
+                "0",  # Скидка 0%
+                form.company.data.strip(),
+                form.address.data.strip(),
+                form.phone.data.strip(),
+                email,
+                ""  # Комментарий
+            ]
+            write_sheet('Users!A3', [new_user])
+            success = True
+
+    return render_template('registration.html', form=form, error=error, success=success)
+
+
+# Выход
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect('/')
 
 
+# Каталог (Shop)
 @app.route('/shop', methods=['GET', 'POST'])
 def shop():
     if 'username' not in session:
@@ -119,25 +162,29 @@ def shop():
                            message=message)
 
 
+# Главная
 @app.route('/')
 @app.route('/index')
 def index():
     return render_template('index.html', year=datetime.now().year)
 
 
+# Контакты
 @app.route('/contacts')
 def contacts():
     return render_template('contacts.html', year=datetime.now().year)
 
 
+# Обратная связь
 @app.route('/feedback', methods=['GET', 'POST'])
 def feedback():
     success = False
     if request.method == 'POST':
-        success = True  # В дальнейшем: отправка email или запись в таблицу
+        success = True  # В дальнейшем: запись в таблицу или отправка письма
     return render_template('feedback.html', year=datetime.now().year, success=success)
 
 
+# Страница заказов
 @app.route('/orders')
 def orders():
     if 'username' not in session:
@@ -179,6 +226,7 @@ def orders():
                            months=months)
 
 
+# О проекте
 @app.route('/about')
 def about():
     return render_template('about.html', year=datetime.now().year)
