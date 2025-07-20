@@ -5,7 +5,16 @@ from collections import defaultdict
 from datetime import datetime
 from forms import RegistrationForm
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_mail import Mail, Message
 
+# Настройки почты
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_USERNAME'] = 'tsysn1@gmail.com'   # твой email
+app.config['MAIL_PASSWORD'] = 'wsnq oqfd rsbb fljq'           # пароль приложения
+
+mail = Mail(app)
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # замените на безопасный ключ в продакшене
 
@@ -259,13 +268,43 @@ def index():
 def contacts():
     return render_template('contacts.html', year=datetime.now().year)
 
-
 @app.route('/feedback', methods=['GET', 'POST'])
 def feedback():
     success = False
+    client_authenticated = 'username' in session
+
     if request.method == 'POST':
+        now = datetime.now().strftime('%d.%m.%Y %H:%M:%S')
+
+        client_name = session.get('client_name') if client_authenticated else ''
+        name = session.get('client_name') if client_authenticated else request.form.get('name', '').strip()
+        email = session.get('client_email') if client_authenticated else request.form.get('email', '').strip()
+        phone = session.get('client_phone') if client_authenticated else request.form.get('phone', '').strip()
+
+        message_type = request.form.get('message_type', '').strip()
+        order_number = request.form.get('order_number', '').strip()
+        message_text = request.form.get('message', '').strip()
+
+        record = [
+            now,
+            client_name,
+            name,
+            email,
+            phone,
+            message_type,
+            order_number,
+            message_text
+        ]
+
+        write_sheet('Feedback!A2', [record])  # добавляем строку в таблицу
+
         success = True
-    return render_template('feedback.html', year=datetime.now().year, success=success)
+
+    return render_template('feedback.html',
+                           year=datetime.now().year,
+                           success=success,
+                           client_authenticated=client_authenticated)
+
 
 
 @app.route('/orders')

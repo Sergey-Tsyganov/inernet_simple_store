@@ -7,9 +7,28 @@
     <h2>Обратная связь</h2>
 
     <form method="POST">
-        <input type="text" name="name" class="form-control mb-3" placeholder="Ваше имя..." required>
-        <input type="email" name="email" class="form-control mb-3" placeholder="Ваш Email" required>
+        <input type="text" name="name" class="form-control mb-3" placeholder="Ваше имя..." required
+               value="{{ session.client_name if client_authenticated else '' }}">
+
+        <input type="email" name="email" class="form-control mb-3" placeholder="Ваш Email..." required
+               value="{{ session.client_email if client_authenticated else '' }}">
+
+        <input type="text" name="phone" class="form-control mb-3" placeholder="Ваш телефон..."
+               value="{{ session.client_phone if client_authenticated else '' }}">
+
+        <select name="message_type" class="form-select mb-3" required>
+            <option value="">Тип сообщения</option>
+            <option>Благодарность</option>
+            <option>Жалоба</option>
+            <option>Информация</option>
+            <option>Претензия по заказу</option>
+            <option>Прочее</option>
+        </select>
+
+        <input type="text" name="order_number" class="form-control mb-3" placeholder="Номер заказа (если есть)">
+
         <textarea name="message" class="form-control mb-3" placeholder="Ваше сообщение..." rows="5" required></textarea>
+
         <button type="submit" class="btn btn-primary w-100">Отправить</button>
     </form>
 
