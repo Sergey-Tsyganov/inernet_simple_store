@@ -1,16 +1,15 @@
 from flask import Flask, render_template, request, session, redirect, url_for
 from utils.captcha_generator import generate_captcha
-from utils.google_api import read_sheet, write_sheet, get_max_order_number
+from utils.google_api import read_sheet, write_sheet, get_max_order_number, update_sheet_range
 from collections import defaultdict
 from datetime import datetime
 from forms import RegistrationForm
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = 'supersecretkey'  # В продакшене замените на безопасный ключ
+app.secret_key = 'supersecretkey'  # замените на безопасный ключ в продакшене
 
 
-# Фильтр для Jinja2 (форматирование дат)
 @app.template_filter('format_date')
 def format_date(value):
     try:
@@ -20,7 +19,6 @@ def format_date(value):
         return ''
 
 
-# Авторизация
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -45,7 +43,10 @@ def login():
             session['client_phone'] = user_data[5] if len(user_data) > 5 else ''
             session['client_email'] = user_data[6] if len(user_data) > 6 else ''
             session['client_comment'] = user_data[7] if len(user_data) > 7 else ''
-            return redirect(url_for('shop'))
+
+            if username == 'admin':
+                return redirect('/admin')
+            return redirect('/shop')
 
         captcha_text, captcha_path = generate_captcha()
         session['captcha_text'] = captcha_text
@@ -56,7 +57,6 @@ def login():
     return render_template('login.html', captcha=captcha_path)
 
 
-# Регистрация
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegistrationForm()
@@ -81,12 +81,12 @@ def register():
             new_user = [
                 username,
                 hashed_password,
-                "0",  # Скидка 0%
+                "0",
                 form.company.data.strip(),
                 form.address.data.strip(),
                 form.phone.data.strip(),
                 email,
-                ""  # Комментарий
+                ""
             ]
             write_sheet('Users!A3', [new_user])
             success = True
@@ -94,14 +94,12 @@ def register():
     return render_template('registration.html', form=form, error=error, success=success)
 
 
-# Выход
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect('/')
 
 
-# Каталог (Shop)
 @app.route('/shop', methods=['GET', 'POST'])
 def shop():
     if 'username' not in session:
@@ -162,29 +160,114 @@ def shop():
                            message=message)
 
 
-# Главная
+@app.route('/admin', methods=['GET', 'POST'])
+def admin_panel():
+    if session.get('username') != 'admin':
+        return redirect('/login')
+
+    admin_data = read_sheet('admin!A2:B2')
+    admin_email = admin_data[0][0] if admin_data and len(admin_data[0]) >= 1 else ''
+    admin_phone = admin_data[0][1] if admin_data and len(admin_data[0]) >= 2 else ''
+
+    success = False
+
+    if request.method == 'POST' and request.form.get('action') == 'update_admin':
+        admin_email = request.form['admin_email'].strip()
+        admin_phone = request.form['admin_phone'].strip()
+        update_sheet_range('admin!A2', [[admin_email, admin_phone]])
+        success = True
+
+    users = read_sheet('Users!A2:H')
+
+    return render_template('admin.html',
+                           admin_email=admin_email,
+                           admin_phone=admin_phone,
+                           users=users,
+                           success=success)
+
+
+@app.route('/admin/delete/<username>')
+def admin_delete_user(username):
+    if session.get('username') != 'admin':
+        return redirect('/login')
+
+    users = read_sheet('Users!A2:H')
+    users = [u for u in users if u[0] != username]
+
+    from utils.google_api import clear_sheet_range, write_sheet
+
+    clear_sheet_range('Users!A2:H')  # 1️⃣ Очищаем старый диапазон
+
+    if users:
+        write_sheet('Users!A2', users)  # 2️⃣ Записываем оставшиеся строки
+
+    return redirect('/admin')
+
+
+
+@app.route('/admin/edit/<username>', methods=['GET', 'POST'])
+def admin_edit_user(username):
+    # ✅ Ограничение доступа: только для администратора
+    if session.get('username') != 'admin':
+        return redirect('/login')
+
+    # ✅ Чтение всех пользователей
+    users = read_sheet('Users!A2:H')
+    user_data = next((u for u in users if u[0] == username), None)
+
+    if not user_data:
+        return "Пользователь не найден", 404
+
+    if request.method == 'POST':
+        # ✅ Получаем изменённые данные из формы
+        discount = request.form['discount']
+        company = request.form['company']
+        address = request.form['address']
+        phone = request.form['phone']
+        email = request.form['email']
+        comment = request.form['comment']
+
+        # ✅ Формируем обновлённую строку
+        updated_row = [
+            user_data[0],     # Логин (не меняется)
+            user_data[1],     # Пароль (хеш, не меняется)
+            discount,
+            company,
+            address,
+            phone,
+            email,
+            comment
+        ]
+
+        # ✅ Обновляем конкретную строку в Google Sheets
+        row_number = users.index(user_data) + 2  # строка A2 = 2
+        #write_sheet(f'Users!A{row_number}:H{row_number}', [updated_row])
+        update_sheet_range(f'Users!A{row_number}:H{row_number}', [updated_row])
+        return redirect('/admin')
+
+    # ✅ Отображаем форму редактирования
+    return render_template('admin_edit.html', user=user_data)
+
+
 @app.route('/')
 @app.route('/index')
 def index():
     return render_template('index.html', year=datetime.now().year)
 
 
-# Контакты
 @app.route('/contacts')
 def contacts():
     return render_template('contacts.html', year=datetime.now().year)
 
 
-# Обратная связь
 @app.route('/feedback', methods=['GET', 'POST'])
 def feedback():
     success = False
     if request.method == 'POST':
-        success = True  # В дальнейшем: запись в таблицу или отправка письма
+        success = True
     return render_template('feedback.html', year=datetime.now().year, success=success)
 
 
-# Страница заказов
 @app.route('/orders')
 def orders():
     if 'username' not in session:
@@ -226,7 +309,6 @@ def orders():
                            months=months)
 
 
-# О проекте
 @app.route('/about')
 def about():
     return render_template('about.html', year=datetime.now().year)

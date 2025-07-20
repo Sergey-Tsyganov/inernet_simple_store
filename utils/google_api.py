@@ -28,6 +28,30 @@ def write_sheet(range_name, values):
     ).execute()
     return result
 
+def update_sheet_range(range_name, values):
+    """
+    Перезаписывает указанный диапазон в Google Sheets.
+    :param range_name: Например, 'Users!A5:H5'
+    :param values: Список списков с данными для записи
+    """
+    sheet = service.spreadsheets()
+    body = {
+        'values': values
+    }
+    sheet.values().update(
+        spreadsheetId=SPREADSHEET_ID,
+        range=range_name,
+        valueInputOption='RAW',
+        body=body
+    ).execute()
+
+def clear_sheet_range(range_name):
+    sheet = service.spreadsheets()
+    sheet.values().clear(
+        spreadsheetId=SPREADSHEET_ID,
+        range=range_name,
+        body={}
+    ).execute()
 
 def get_max_order_number():
     result = sheet.values().get(
@@ -37,3 +61,4 @@ def get_max_order_number():
     values = result.get('values', [])
     numbers = [int(v[0]) for v in values if v and v[0].isdigit()]
     return max(numbers) if numbers else 0
+

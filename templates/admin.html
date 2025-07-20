@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Администрирование{% endblock %}
+
+{% block content %}
+
+<div class="container my-5">
+    <h2 class="mb-4">Панель администратора</h2>
+
+    {% if success %}
+        <div class="alert alert-success">Данные администратора успешно обновлены.</div>
+    {% endif %}
+
+    <!-- Форма для изменения email и телефона администратора -->
+    <form method="POST" class="mb-5">
+        <div class="mb-3">
+            <label class="form-label">Email администратора</label>
+            <input type="email" name="admin_email" class="form-control" value="{{ admin_email }}" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Телефон администратора</label>
+            <input type="text" name="admin_phone" class="form-control" value="{{ admin_phone }}" required>
+        </div>
+        <button type="submit" name="action" value="update_admin" class="btn btn-primary">Сохранить</button>
+    </form>
+
+    <hr class="my-5">
+
+    <h3 class="mb-3">Зарегистрированные пользователи</h3>
+
+    <div class="table-responsive">
+        <table class="table table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Логин</th>
+                    <th>Название</th>
+                    <th>Email</th>
+                    <th>Телефон</th>
+                    <th>Скидка</th>
+                    <th>Комментарии</th>
+                    <th class="text-center">Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for u in users %}
+                <tr>
+                    <td>{{ u[0] }}</td>
+                    <td>{{ u[3] }}</td>
+                    <td>{{ u[6] }}</td>
+                    <td>{{ u[5] }}</td>
+                    <td>{{ u[2] }}%</td>
+                    <td>{{ u[7] if u|length > 7 else '' }}</td>
+                    <td class="text-center">
+                        <a href="/admin/edit/{{ u[0] }}" class="btn btn-sm btn-outline-primary me-1">Изменить</a>
+                        <a href="/admin/delete/{{ u[0] }}" class="btn btn-sm btn-outline-danger"
+                           onclick="return confirm('Удалить пользователя {{ u[0] }}?')">Удалить</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
