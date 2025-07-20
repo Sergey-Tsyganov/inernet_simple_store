@@ -2,74 +2,87 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Мои заказы</title>
+    <title>Статистика заказов</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
-        body { margin: 0; padding-top: 140px; }
-        .fixed-panel {
+        body {
+            margin: 0;
+            padding-top: 180px; /* navbar + панель итогов */
+            background-color: #f5f7f9;
+        }
+        .fixed-summary-panel {
             position: fixed;
-            top: 0;
+            top: 56px;
             width: 100%;
             z-index: 1050;
             background: #f8f9fa;
             border-bottom: 1px solid #dee2e6;
+            padding: 10px 0;
         }
         .refused { background-color: #f8d7da !important; }
+        footer { background-color: #343a40; color: #fff; }
     </style>
 </head>
 <body>
 
-<!-- ✅ Единая верхняя панель -->
-<div class="fixed-panel p-2">
-    <div class="container d-flex flex-wrap justify-content-between align-items-center">
-        <div>
-            <strong>{{ client.client_name }}</strong> | Скидка: {{ discount }}%
+<!-- ✅ Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="/index">Мой Магазин</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="/">Главная</a></li>
+                <li class="nav-item"><a class="nav-link" href="/contacts">Контакты</a></li>
+                <li class="nav-item"><a class="nav-link" href="/feedback">Обратная связь</a></li>
+                <li class="nav-item"><a class="nav-link" href="/about">О проекте</a></li>
+            </ul>
         </div>
+    </div>
+</nav>
+
+<!-- ✅ Панель итогов, кнопки и фильтров -->
+<div class="fixed-summary-panel">
+    <div class="container d-flex justify-content-between align-items-center flex-wrap">
         <div>
+            <strong>{{ client.client_name }}</strong> | Скидка: {{ discount }}% |
             <strong>Сумма заказов:</strong> <span id="totalSum">{{ "%.2f"|format(total_sum) }}</span> руб. |
             <strong>Количество:</strong> <span id="totalQty">{{ total_qty }}</span>
         </div>
+        <a href="/shop" class="btn btn-primary btn-sm">Сделать заказ</a>
     </div>
-    <div class="container d-flex flex-wrap gap-3 mt-2">
-        <div>
-            <label>Фильтр по месяцу:
-                <select class="form-select form-select-sm" onchange="applyFilters()" id="monthFilter">
-                    <option value="">Все</option>
-                    {% for m in months %}
-                    <option value="{{ m }}">{{ m }}</option>
-                    {% endfor %}
-                </select>
-            </label>
-        </div>
-        <div>
-            <label>Фильтр по статусу:
-                <select class="form-select form-select-sm" onchange="applyFilters()" id="statusFilter">
-                    <option value="">Все</option>
-                    <option value="новый">Новый</option>
-                    <option value="отгружено">Отгружено</option>
-                    <option value="доставлен">Доставлен</option>
-                    <option value="отказано">Отказано</option>
-                </select>
-            </label>
-        </div>
-        <div>
-            <label>Фильтр по товару:
-                <input type="text" class="form-control form-control-sm" id="productFilter" placeholder="Артикул или название" oninput="applyFilters()">
-            </label>
-        </div>
-        <div>
-            <label>Режим:
-                <select class="form-select form-select-sm" onchange="applyFilters()" id="modeFilter">
-                    <option value="detailed">Со строками</option>
-                    <option value="summary">Без строк</option>
-                </select>
-            </label>
-        </div>
+
+    <div class="container d-flex flex-wrap gap-2 mt-2">
+        <select class="form-select form-select-sm w-auto" onchange="applyFilters()" id="monthFilter">
+            <option value="">Все месяцы</option>
+            {% for m in months %}
+            <option value="{{ m }}">{{ m }}</option>
+            {% endfor %}
+        </select>
+
+        <select class="form-select form-select-sm w-auto" onchange="applyFilters()" id="statusFilter">
+            <option value="">Все статусы</option>
+            <option value="новый">Новый</option>
+            <option value="отгружено">Отгружено</option>
+            <option value="доставлен">Доставлен</option>
+            <option value="отказано">Отказано</option>
+        </select>
+
+        <input type="text" class="form-control form-control-sm w-auto"
+               placeholder="Артикул или название" id="productFilter" oninput="applyFilters()">
+
+        <select class="form-select form-select-sm w-auto" onchange="applyFilters()" id="modeFilter">
+            <option value="detailed">Со строками</option>
+            <option value="summary">Без строк</option>
+        </select>
     </div>
 </div>
 
-<!-- ✅ Контент -->
-<div class="container mt-5 pt-5">
+<!-- ✅ Основной контент -->
+<div class="container mb-5">
+
     {% for order_number, items in grouped.items() %}
     <div class="card mb-3 order-block" data-month="{{ items[0][0][:7] }}">
         <div class="card-header">
@@ -119,9 +132,18 @@
         </div>
     </div>
     {% endfor %}
+
 </div>
 
-<!-- ✅ Скрипт -->
+<!-- ✅ Футер -->
+<footer class="py-3 mt-5">
+    <div class="container text-center">
+        © {{ year }} Мой Магазин | Все права защищены
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
 function applyFilters() {
     const month = document.getElementById('monthFilter').value;
@@ -177,11 +199,7 @@ function applyFilters() {
         summaryText.textContent = `Итог: ${orderQty} шт. на ${orderSum.toFixed(2)} руб.`;
 
         const detailsBlock = order.querySelector('.order-details');
-        if (mode === 'summary') {
-            detailsBlock.style.display = 'none';
-        } else {
-            detailsBlock.style.display = foundInOrder ? '' : 'none';
-        }
+        detailsBlock.style.display = (mode === 'summary') ? 'none' : (foundInOrder ? '' : 'none');
 
         order.style.display = foundInOrder ? '' : 'none';
 

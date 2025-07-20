@@ -4,16 +4,16 @@
     <meta charset="UTF-8">
     <title>Каталог товаров</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        body { margin: 0; padding-top: 0; }
+        body { margin: 0; padding-top: 0; background-color: #f5f7f9; }
         .fixed-panel-client {
             position: fixed;
-            top: 0;
+            top: 56px;  /* Сдвигаем под navbar */
             width: 100%;
             z-index: 1050;
             background: #f8f9fa;
             padding: 10px;
-            border-bottom: none;
         }
         .fixed-panel-summary {
             position: fixed;
@@ -21,12 +21,33 @@
             z-index: 1049;
             background: #f8f9fa;
             padding: 10px;
-            border-top: none;
             border-bottom: 1px solid #dee2e6;
+        }
+        footer {
+            background-color: #343a40;
+            color: #fff;
         }
     </style>
 </head>
 <body>
+
+<!-- ✅ Навигация -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="/index">Мой Магазин</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="/">Главная</a></li>
+                <li class="nav-item"><a class="nav-link" href="/contacts">Контакты</a></li>
+                <li class="nav-item"><a class="nav-link" href="/feedback">Обратная связь</a></li>
+                <li class="nav-item"><a class="nav-link" href="/about">О проекте</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
 
 <!-- ✅ Панель клиента -->
 <div id="clientPanel" class="fixed-panel-client">
@@ -36,7 +57,7 @@
     </div>
 </div>
 
-<!-- ✅ Панель итогов и кнопки -->
+<!-- ✅ Панель итогов и кнопок -->
 <div id="orderSummary" class="fixed-panel-summary">
     <div class="container d-flex justify-content-between align-items-center flex-wrap">
         <div>
@@ -44,11 +65,14 @@
             <strong>Сумма со скидкой:</strong> <span id="sumWithDiscount">0.00</span> руб.
             <strong>Всего штук:</strong> <span id="totalQty">0</span>
         </div>
-        <button type="submit" form="orderForm" class="btn btn-primary">Разместить заказ</button>
+        <div class="d-flex gap-2">
+            <a href="/orders" class="btn btn-outline-secondary">Статистика</a>
+            <button type="submit" form="orderForm" class="btn btn-primary">Разместить заказ</button>
+        </div>
     </div>
 </div>
 
-<!-- ✅ Контент -->
+<!-- ✅ Основной контент -->
 <div id="mainContent" class="container">
 
     {% if message %}
@@ -89,7 +113,15 @@
 
 </div>
 
-<!-- ✅ Скрипт -->
+<!-- ✅ Футер -->
+<footer class="py-3 mt-5">
+    <div class="container text-center">
+        © {{ year }} Мой Магазин | Все права защищены
+    </div>
+</footer>
+
+<!-- ✅ Скрипты -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const qtyInputs = document.querySelectorAll('.qty-input');
@@ -102,9 +134,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function adjustSummaryPanel() {
         const clientHeight = clientPanel.offsetHeight;
-        orderSummary.style.top = clientHeight + 'px';
+        const navHeight = 56;
+        orderSummary.style.top = (clientHeight + navHeight) + 'px';
         const summaryHeight = orderSummary.offsetHeight;
-        mainContent.style.marginTop = (clientHeight + summaryHeight + 10) + 'px';
+        mainContent.style.marginTop = (clientHeight + summaryHeight + navHeight + 10) + 'px';
     }
 
     function recalculate() {
