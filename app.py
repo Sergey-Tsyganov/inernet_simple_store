@@ -6,6 +6,9 @@ from datetime import datetime
 from forms import RegistrationForm
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mail import Mail, Message
+import requests
+
+
 app = Flask(__name__)
 # Настройки почты
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -15,6 +18,12 @@ app.config['MAIL_USERNAME'] = 'tsysn1@gmail.com'   # твой email
 app.config['MAIL_PASSWORD'] = 'wsnq oqfd rsbb fljq'           # пароль приложения
 
 mail = Mail(app)
+# API TELEGA bot 7360824344:AAFBPSYExdZ4cXX95HBpJNxFnWImSO61FRA
+# Tsy_simple_bot  Tsy_simple_istore
+#chat id 384456688
+
+TELEGRAM_BOT_TOKEN = 'AAFBPSYExdZ4cXX95HBpJNxFnWImSO61FRA'
+TELEGRAM_CHAT_ID = '384456688'  # например: '-1001234567890'
 
 app.secret_key = 'supersecretkey'  # замените на безопасный ключ в продакшене
 
