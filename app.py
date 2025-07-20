@@ -6,7 +6,7 @@ from datetime import datetime
 from forms import RegistrationForm
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mail import Mail, Message
-
+app = Flask(__name__)
 # Настройки почты
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
@@ -15,7 +15,7 @@ app.config['MAIL_USERNAME'] = 'tsysn1@gmail.com'   # твой email
 app.config['MAIL_PASSWORD'] = 'wsnq oqfd rsbb fljq'           # пароль приложения
 
 mail = Mail(app)
-app = Flask(__name__)
+
 app.secret_key = 'supersecretkey'  # замените на безопасный ключ в продакшене
 
 
@@ -108,6 +108,21 @@ def logout():
     session.clear()
     return redirect('/')
 
+import threading
+from flask_mail import Message
+
+def send_order_email(subject, recipients, body):
+    """Фоновая отправка email."""
+    try:
+        msg = Message(subject=subject,
+                      sender=app.config['MAIL_USERNAME'],
+                      recipients=recipients,
+                      body=body)
+        with app.app_context():
+            mail.send(msg)
+        print("✅ Email отправлен")
+    except Exception as e:
+        print(f"❌ Ошибка при отправке email: {e}")
 
 @app.route('/shop', methods=['GET', 'POST'])
 def shop():
@@ -130,7 +145,8 @@ def shop():
             'description': p[5]
         })
 
-    message = None
+    # Получаем сообщение после редиректа (если есть)
+    message = session.pop('shop_message', None)
 
     if request.method == 'POST':
         now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -156,11 +172,36 @@ def shop():
                     ])
 
         if orders:
+            write_sheet('Orders!A3', orders)  # 📌 одним вызовом, а не в цикле
+
+            # 📧 Формируем текст письма
+            email_body = f'Здравствуйте, {session["client_name"]}!\n\n'
+            email_body += f'Ваш заказ № {new_order_number} оформлен {now}.\n\n'
+            email_body += 'Состав заказа:\n'
+            total_sum = 0
+
             for o in orders:
-                write_sheet('Orders!A3', [o])
-            message = f'Заказ № {new_order_number} размещен успешно.'
+                line = f"{o[4]} (Артикул: {o[3]}) — {o[5]} шт. по {float(o[6]):.2f} руб.\n"
+                email_body += line
+                total_sum += int(o[5]) * float(o[6])
+
+            email_body += f'\nИтоговая сумма: {total_sum:.2f} руб.\n\n'
+            email_body += 'Спасибо за ваш заказ!'
+
+            admin_email = read_sheet('admin!A2:B2')[0][0]
+            recipients = [session['client_email'], admin_email]
+
+            threading.Thread(
+                target=send_order_email,
+                args=(f'Заказ № {new_order_number}', recipients, email_body)
+            ).start()
+
+            # ✅ Сохраняем сообщение для показа после редиректа
+            session['shop_message'] = f'Заказ № {new_order_number} размещен успешно. Уведомление отправлено на почту.'
         else:
-            message = 'Вы не выбрали товары.'
+            session['shop_message'] = 'Вы не выбрали товары.'
+
+        return redirect('/shop')  # POST-Redirect-GET
 
     return render_template('shop.html',
                            products=products,
