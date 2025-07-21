@@ -17,6 +17,11 @@
             z-index: 999;
         }
     </style>
+    <style>
+        .custom-sticky {
+            top: 70px;
+        }
+    </style>
 </head>
 <body>
 
@@ -24,9 +29,9 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm sticky-top">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center gap-2" href="/index">
-    <img src="{{ url_for('static', filename='favicon2.png') }}" alt="Лого" style="height: 1.5em;">
-    Мой Примитивный Магазин
-</a>
+            <img src="{{ url_for('static', filename='favicon2.png') }}" alt="Лого" style="height: 1.5em;">
+            Мой Примитивный Магазин
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -39,12 +44,12 @@
                 <li class="nav-item"><a class="nav-link" href="/about">О проекте</a></li>
 
                 {% if session.get('username') %}
-                    <li class="nav-item"><a class="nav-link" href="/shop">Каталог</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/orders">Статистика</a></li>
-                    <li class="nav-item"><a class="btn btn-outline-danger ms-3" href="/logout">Выход</a></li>
+                <li class="nav-item"><a class="nav-link" href="/shop">Каталог</a></li>
+                <li class="nav-item"><a class="nav-link" href="/orders">Статистика</a></li>
+                <li class="nav-item"><a class="btn btn-outline-danger ms-3" href="/logout">Выход</a></li>
                 {% else %}
-                    <li class="nav-item"><a class="btn btn-outline-light ms-3 me-2" href="/register">Регистрация</a></li>
-                    <li class="nav-item"><a class="btn btn-primary" href="/login">Войти</a></li>
+                <li class="nav-item"><a class="btn btn-outline-light ms-3 me-2" href="/register">Регистрация</a></li>
+                <li class="nav-item"><a class="btn btn-primary" href="/login">Войти</a></li>
                 {% endif %}
 
             </ul>
@@ -58,7 +63,8 @@
 </div>
 
 <!-- ✅ Кнопка наверх -->
-<button type="button" class="btn btn-primary rounded-circle scroll-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+<button type="button" class="btn btn-primary rounded-circle scroll-to-top"
+        onclick="window.scrollTo({top:0,behavior:'smooth'})">
     <i class="bi bi-arrow-up"></i>
 </button>
 

@@ -10,8 +10,6 @@ import threading
 import requests
 from flask import send_from_directory
 
-
-
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # замените в продакшене
 
@@ -59,6 +57,7 @@ def send_telegram_message(text):
             print('✅ Сообщение отправлено в Telegram')
     except Exception as e:
         print(f'❌ Ошибка при отправке в Telegram: {e}')
+
 
 @app.route('/favicon.ico')
 def favicon():
@@ -234,7 +233,8 @@ def shop():
 
             recipients = [session['client_email'], admin_settings['admin_email']]
 
-            threading.Thread(target=send_order_email, args=(f'Заказ № {new_order_number}', recipients, email_body)).start()
+            threading.Thread(target=send_order_email,
+                             args=(f'Заказ № {new_order_number}', recipients, email_body)).start()
             threading.Thread(target=send_telegram_message, args=(telegram_message,)).start()
 
             session['shop_message'] = f'Заказ № {new_order_number} размещен успешно. Уведомление отправлено.'
@@ -389,7 +389,8 @@ def feedback():
         write_sheet('Feedback!A2', [record])
         success = True
 
-    return render_template('feedback.html', year=datetime.now().year, success=success, client_authenticated=client_authenticated)
+    return render_template('feedback.html', year=datetime.now().year, success=success,
+                           client_authenticated=client_authenticated)
 
 
 @app.route('/orders')
@@ -406,12 +407,16 @@ def orders():
         order_number = o[2]
         grouped[order_number].append(o)
 
-    total_sum = sum(int(o[5]) * float(o[6]) for group in grouped.values() for o in group if len(o) >= 8 and o[7].strip() != 'отказано')
-    total_qty = sum(int(o[5]) for group in grouped.values() for o in group if len(o) >= 8 and o[7].strip() != 'отказано')
+    total_sum = sum(int(o[5]) * float(o[6]) for group in grouped.values() for o in group if
+                    len(o) >= 8 and o[7].strip() != 'отказано')
+    total_qty = sum(
+        int(o[5]) for group in grouped.values() for o in group if len(o) >= 8 and o[7].strip() != 'отказано')
 
-    months = sorted({datetime.strptime(o[0], '%d.%m.%Y %H:%M:%S').strftime('%Y-%m') for o in client_orders if o[0]}, reverse=True)
+    months = sorted({datetime.strptime(o[0], '%d.%m.%Y %H:%M:%S').strftime('%Y-%m') for o in client_orders if o[0]},
+                    reverse=True)
 
-    return render_template('orders.html', grouped=grouped, discount=session['discount'], client=session, total_sum=total_sum, total_qty=total_qty, months=months)
+    return render_template('orders.html', grouped=grouped, discount=session['discount'], client=session,
+                           total_sum=total_sum, total_qty=total_qty, months=months)
 
 
 @app.route('/about')
