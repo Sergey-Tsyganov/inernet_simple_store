@@ -8,6 +8,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mail import Mail, Message
 import threading
 import requests
+from flask import send_from_directory
+
+
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # замените в продакшене
@@ -56,6 +59,11 @@ def send_telegram_message(text):
             print('✅ Сообщение отправлено в Telegram')
     except Exception as e:
         print(f'❌ Ошибка при отправке в Telegram: {e}')
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 
 @app.template_filter('format_date')
