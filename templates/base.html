@@ -31,6 +31,11 @@
         <a class="navbar-brand d-flex align-items-center gap-2" href="/index">
             <img src="{{ url_for('static', filename='favicon2.png') }}" alt="Лого" style="height: 1.5em;">
             Мой Примитивный Магазин
+            {% if session.get('username') %}
+            <span class="navbar-text ms-3" style="color: red;">
+        {{ session.get('username') }}
+    </span>
+            {% endif %}
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
