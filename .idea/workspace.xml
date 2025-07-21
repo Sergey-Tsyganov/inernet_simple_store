@@ -4,11 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c780fde3-b703-49f2-a2af-cd7231537656" name="Changes" comment="рабоатет все ver 2.0 в выделенным Json">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/run_app.bat" beforeDir="false" afterPath="$PROJECT_DIR$/run_app.bat" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/google_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/google_api.py" afterDir="false" />
-    </list>
+    <list default="true" id="c780fde3-b703-49f2-a2af-cd7231537656" name="Changes" comment="рабоатет все ver 2.0 в выделенным Json" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -323,7 +319,15 @@
       <option name="project" value="LOCAL" />
       <updated>1753052625620</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="рабоатет все ver 2.0 в выделенным Json">
+      <option name="closed" value="true" />
+      <created>1753056619331</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1753056619331</updated>
+    </task>
+    <option name="localTasksCounter" value="29" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
